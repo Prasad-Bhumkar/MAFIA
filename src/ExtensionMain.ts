@@ -6,12 +6,16 @@ import { AIServiceV2, AIRequest, Language } from './ai/AIServiceV2';
 import { SuggestionProvider } from './ai/SuggestionProvider';
 import { DependencyMapper } from './analysis/DependencyMapper';
 import { ArchitectureValidator } from './analysis/ArchitectureValidator';
+import { DocumentationGenerator } from './ai/DocumentationGenerator';
+import { DocumentationExporter } from './export/DocumentationExporter';
 
 export class ExtensionMain {
     private visualizer: ComponentVisualizer;
     private qualityDashboard: QualityDashboard;
     private projectScanner: EnhancedProjectScanner;
     private aiService: AIServiceV2;
+    private docGenerator?: DocumentationGenerator;
+    private docExporter?: DocumentationExporter;
     private suggestionProvider: vscode.Disposable | undefined;
 
     constructor(private context: vscode.ExtensionContext) {
@@ -19,6 +23,7 @@ export class ExtensionMain {
         this.qualityDashboard = new QualityDashboard(context);
         this.projectScanner = new EnhancedProjectScanner();
         this.aiService = AIServiceV2.getInstance(context);
+        // Documentation components will be initialized when needed
         this.registerCommands();
         this.setupStatusBar();
         this.registerAIComponents();

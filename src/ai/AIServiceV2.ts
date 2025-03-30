@@ -16,6 +16,7 @@ export interface AIRequest {
 
 interface AIResponse {
     suggestions: string[];
+    tests?: string[];
     explanation?: string;
     confidence?: number;
 }
@@ -115,6 +116,18 @@ export class AIServiceV2 {
         });
     }
 
+    public async generateTests(
+        request: AIRequest, 
+        onStream?: (chunk: string) => void
+    ): Promise<AIResponse> {
+        return this.processAIRequest({
+            systemPrompt: `Generate unit tests for the following code:\n\n${request.context}`,
+            request,
+            onStream,
+            cacheKey: `test:${this.generateCacheKey(request)}`
+        });
+    }
+
     public async explainCode(
         request: AIRequest,
         onStream?: (chunk: string) => void
@@ -122,8 +135,6 @@ export class AIServiceV2 {
         return this.processAIRequest({
             systemPrompt: `Explain this ${request.language} code in detail:\n\n1. Purpose\n2. Key components\n3. Data flow\n4. Potential issues`,
             request,
-            onStream,
-            cacheKey: `explanation:${this.generateCacheKey(request)}`
             onStream,
             cacheKey: `explanation:${this.generateCacheKey(request)}`
         });
@@ -248,6 +259,25 @@ Provide specific recommendations.`
         }
     }
 
+    private generateCacheKey(request: AIRequest): string {
+        return `${request.language}:${request.document.fileName}:${request.cursorPosition.line}`;
+    }
+
+    private async queryLocalModel(params: {
+        endpoint: string;
+        messages: { role: 'system' | 'user'; content: string }[];
+        temperature: number;
+        maxTokens: number;
+        onStream?: (chunk: string) => void;
+    }): Promise<AIResponse> {
+        // TODO: Implement local model query logic
+        return {
+            suggestions: ['Local model response not yet implemented'],
+            explanation: 'Local model not implemented',
+            confidence: 0.8
+        };
+    }
+
     private parseArchitectureReview(content: string): ArchitectureReview {
         // Parse the AI response into structured review
         const scoreMatch = content.match(/Score: (\d+)\/10/);
@@ -274,5 +304,7 @@ Provide specific recommendations.`
         }`;
     }
 
-    // ... (keep existing helper methods)
+    public getMemoryUsage(): number {
+        return this.memoryUsage;
+    }
 }

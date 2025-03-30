@@ -24,6 +24,8 @@ describe('AIService', () => {
         aiService = AIService.getInstance(mockContext);
         console.log('Clearing cache...');
         aiService.clearCache();
+        // Reset rate limiter with high limits for testing
+        aiService['rateLimiter'] = new (require('../../src/utils/RateLimiter').default)(100, 1000);
         console.log('Test initialized');
     });
 
@@ -74,6 +76,20 @@ describe('AIService', () => {
         const result2 = await aiService.getSuggestions(prompt);
         expect(result2).toBe(mockResponse);
         expect(mockCreate).toHaveBeenCalledTimes(1); // Still only called once
+    });
+
+    it('should enforce rate limits', async () => {
+        // Create new instance with tight limits
+        const limitedService = AIService.getInstance(mockContext);
+        limitedService['rateLimiter'] = new (require('../../src/utils/RateLimiter').default)(1, 1000); // 1 request per second
+        
+        // First call should succeed
+        await limitedService.getSuggestions("test prompt");
+        
+        // Second call should fail
+        await expect(limitedService.getSuggestions("test prompt"))
+            .rejects
+            .toThrow('Rate limit exceeded');
     });
 
     it('should handle streaming responses', async () => {
