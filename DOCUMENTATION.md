@@ -130,13 +130,35 @@ Design & Usability Guidelines
 Frontend Implementation Plan
 Base Structure:
 
-Use <script src="https://cdn.tailwindcss.com"></script> for styling
-Import Google Font: <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+- Tailwind CSS v3.4+ via CDN
+- Inter font from Google Fonts
+- Font Awesome v6 for icons
+- Modern VS Code theme colors
+
 UI Components:
 
-Sidebar: w-80 bg-gray-100 fixed h-screen with flex-col layout
-Input field: w-full px-4 py-2 rounded-lg focus:ring with mb-4 spacing
-Task cards: bg-white shadow-md rounded-lg p-4 mb-4 with hover effects
+1. Webview Components:
+   - Sidebar: w-80 bg-gray-50 fixed h-screen with flex-col layout
+   - Input fields: w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500
+   - Cards: bg-white shadow-sm rounded-lg p-4 border border-gray-200
+   - Buttons: px-4 py-2 rounded-md font-medium transition-colors
+
+2. Tree View Components:
+   - Modern VS Code icons (rocket, server-process, database)
+   - Color-coded by type using ThemeColor
+   - Responsive layout
+
+3. Visualization Components:
+   - D3.js for interactive graphs
+   - Tailwind-styled containers
+   - Responsive sizing
+
+Key Improvements:
+- Consistent spacing system (4px base)
+- Accessible color contrast
+- Responsive breakpoints
+- Smooth transitions/hover states
+- Unified typography
 Responsive Design:
 
 Mobile breakpoint: @media (max-width: 768px)

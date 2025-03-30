@@ -46,40 +46,26 @@ export class AgentPanel {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAFIA Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: var(--vscode-editor-background);
-            color: var(--vscode-editor-foreground);
-            padding: 20px;
-            margin: 0;
+            font-family: 'Inter', sans-serif;
         }
-        .operation-list {
-            margin-top: 20px;
-        }
-        .operation-card {
-            background: var(--vscode-sideBar-background);
-            border-radius: 4px;
-            padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .status-running { background: var(--vscode-gitDecoration-addedResourceForeground); }
-        .status-completed { background: var(--vscode-gitDecoration-untrackedResourceForeground); }
-        .status-failed { background: var(--vscode-gitDecoration-deletedResourceForeground); }
     </style>
 </head>
-<body>
-    <h1>MAFIA Agent Operations</h1>
-    <div class="operation-list" id="operationList">
-        <!-- Operations will be dynamically added here -->
+<body class="bg-gray-50 p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">MAFIA Agent Operations</h1>
+            <div class="flex space-x-2">
+                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">Active</span>
+            </div>
+        </div>
+        
+        <div class="space-y-4" id="operationList">
+            <!-- Operations will be dynamically added here -->
+        </div>
     </div>
 
     <script>
@@ -89,13 +75,21 @@ export class AgentPanel {
         window.addEventListener('message', event => {
             const operation = event.data;
             const operationEl = document.createElement('div');
-            operationEl.className = 'operation-card';
+            operationEl.className = 'bg-white p-4 rounded-lg shadow-sm border-l-4';
             operationEl.innerHTML = \`
-                <h3>\${operation.type} operation</h3>
-                <p>\${operation.description}</p>
-                <span class="status-badge status-\${operation.status.toLowerCase()}">
-                    \${operation.status}
-                </span>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-medium text-gray-900">\${operation.type} operation</h3>
+                        <p class="text-sm text-gray-600 mt-1">\${operation.description}</p>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium \${{
+                        'RUNNING': 'bg-blue-100 text-blue-800',
+                        'COMPLETED': 'bg-green-100 text-green-800',
+                        'FAILED': 'bg-red-100 text-red-800'
+                    }[operation.status]}">
+                        \${operation.status}
+                    </span>
+                </div>
             \`;
             document.getElementById('operationList').prepend(operationEl);
         });

@@ -52,17 +52,28 @@ export class ComponentVisualizer {
         <head>
             <title>Component Relationships</title>
             <script src="https://d3js.org/d3.v7.min.js"></script>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
             <style>
-                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                body { font-family: 'Inter', sans-serif; }
                 .node { stroke: #fff; stroke-width: 1.5px; }
-                .link { stroke: #999; stroke-opacity: 0.6; }
+                .link { stroke: #9ca3af; stroke-opacity: 0.6; }
                 .node text { pointer-events: none; font: 10px sans-serif; }
-                #graph { width: 100%; height: 80vh; border: 1px solid #ddd; }
+                #graph { width: 100%; height: 80vh; border: 1px solid #e5e7eb; border-radius: 0.5rem; }
             </style>
         </head>
-        <body>
-            <h1>Component Relationships</h1>
-            <div id="graph"></div>
+        <body class="bg-gray-50 p-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-800">Component Relationships</h1>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 bg-blue-100 text-blue-800 rounded-md text-sm">Controllers: ${structure.controllers.length}</button>
+                        <button class="px-3 py-1 bg-green-100 text-green-800 rounded-md text-sm">Services: ${structure.services.length}</button>
+                        <button class="px-3 py-1 bg-purple-100 text-purple-800 rounded-md text-sm">Repositories: ${structure.repositories.length}</button>
+                    </div>
+                </div>
+                <div id="graph" class="bg-white shadow-sm"></div>
+            </div>
             <script>
                 const data = {
                     nodes: [
