@@ -1,0 +1,123 @@
+{
+  "name": "mafia",
+  "displayName": "IndiCab Spring Analyzer",
+  "description": "Visualization and analysis tool for Spring Boot applications with AI assistance",
+  "version": "1.1.0",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization",
+    "AI"
+  ],
+  "activationEvents": [
+    "onCommand:indiCab.showComponentVisualization",
+    "onCommand:indiCab.showQualityDashboard",
+    "onCommand:indiCab.analyzeFile",
+    "onCommand:indiCab.analyzeFolder",
+    "onLanguage:java"
+  ],
+  "main": "./out/ExtensionMain.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "indiCab.showComponentVisualization",
+        "title": "Show Component Visualization",
+        "category": "IndiCab"
+      },
+      {
+        "command": "indiCab.showQualityDashboard",
+        "title": "Show Quality Dashboard",
+        "category": "IndiCab"
+      },
+      {
+        "command": "indiCab.analyzeFile",
+        "title": "Analyze Java File",
+        "category": "IndiCab"
+      },
+      {
+        "command": "indiCab.analyzeFolder",
+        "title": "Analyze Java Folder",
+        "category": "IndiCab"
+      },
+      {
+        "command": "indiCab.aiSuggest",
+        "title": "Get AI Suggestions",
+        "category": "IndiCab AI"
+      }
+    ],
+    "configuration": {
+      "title": "IndiCab",
+      "properties": {
+        "indicab.qualityThresholds.coverage": {
+          "type": "number",
+          "default": 80,
+          "description": "Minimum test coverage percentage"
+        },
+        "indicab.qualityThresholds.complexity": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum cyclomatic complexity"
+        },
+        "indicabAI.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key for AI suggestions",
+          "scope": "application"
+        },
+        "indicabAI.model": {
+          "type": "string",
+          "default": "code-davinci-002",
+          "description": "AI model to use for completions",
+          "enum": [
+            "code-davinci-002",
+            "text-davinci-003"
+          ],
+          "scope": "application"
+        },
+        "indicabAI.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Creativity of AI suggestions",
+          "scope": "application"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "npm run compile && node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "openai": "^4.90.0",
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "16.x",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.1.0",
+    "eslint": "^8.1.0",
+    "typescript": "^4.4.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/example/indicab-extension.git"
+  },
+  "publisher": "your-publisher-name",
+  "icon": "assets/icon.png",
+  "keywords": [
+    "spring",
+    "java",
+    "visualization",
+    "architecture",
+    "ai",
+    "copilot"
+  ]
+}
