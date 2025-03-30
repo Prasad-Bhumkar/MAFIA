@@ -7,6 +7,35 @@ export interface OperationContext {
     rollback?: () => Promise<void>;
 }
 
+// Custom error classes
+export class APIKeyError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'APIKeyError';
+    }
+}
+
+export class ModelError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'ModelError';
+    }
+}
+
+export class NetworkError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'NetworkError';
+    }
+}
+
+export class LocalModelError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'LocalModelError';
+    }
+}
+
 export class ErrorHandler {
     private static outputChannel: vscode.OutputChannel;
     private static operationLogs: Map<string, string[]> = new Map();

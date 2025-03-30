@@ -1,16 +1,20 @@
-# MAFIA - Modern Architecture Framework & Intelligent Analyzer v1.1.0
+# MAFIA - Modern Architecture Framework & Intelligent Analyzer v1.2.0
 
 [![Version](https://img.shields.io/visual-studio-marketplace/v/mafia)](https://marketplace.visualstudio.com/items?itemName=mafia)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/mafia)](https://marketplace.visualstudio.com/items?itemName=mafia)
 [![License](https://img.shields.io/github/license/indicab/vscode-extension)](LICENSE)
+[![BLACKBOXAI](https://img.shields.io/badge/integration-BLACKBOXAI-blue)](https://github.com/blackboxai)
 
 ![Enhanced Visualization Dashboard](./assets/screenshot.png)
 
-> **New in v1.1.0**: 
-> - GPT-4 Turbo integration 
-> - 3x faster visualizations 
-> - 50+ quality metrics
-> - Rebranded as MAFIA
+> **New in v1.2.0**: 
+> - BLACKBOXAI core integration
+> - Enhanced AI suggestions with multi-model support
+> - Browser automation via Puppeteer
+> - Granular permission system
+> - Extended dependency analysis
+> - 3x faster visualizations (now with D3.js v7)
+> - 75+ quality metrics
 
 ## Features ✨
 

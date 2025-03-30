@@ -37,6 +37,7 @@ exports.ExtensionMain = void 0;
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
+const BlackboxAIMock_1 = require("./ai/BlackboxAIMock");
 const ComponentVisualizer_1 = require("./views/ComponentVisualizer");
 const QualityDashboard_1 = require("./views/QualityDashboard");
 const EnhancedProjectScanner_1 = require("./utils/EnhancedProjectScanner");
@@ -51,6 +52,7 @@ class ExtensionMain {
         this.qualityDashboard = new QualityDashboard_1.QualityDashboard(context);
         this.projectScanner = new EnhancedProjectScanner_1.EnhancedProjectScanner();
         this.aiService = AIServiceV2_1.AIServiceV2.getInstance(context);
+        this.blackboxAI = BlackboxAIMock_1.BlackboxAIMock.getInstance();
         // Documentation components will be initialized when needed
         this.registerCommands();
         this.setupStatusBar();
@@ -59,7 +61,7 @@ class ExtensionMain {
     registerCommands() {
         const dependencyMapper = new DependencyMapper_1.DependencyMapper(this.context);
         const architectureValidator = new ArchitectureValidator_1.ArchitectureValidator(this.context);
-        this.context.subscriptions.push(vscode.commands.registerCommand('mafia.showComponentVisualization', () => this.showVisualization()), vscode.commands.registerCommand('mafia.showQualityDashboard', () => this.showQualityDashboard()), vscode.commands.registerCommand('mafia.analyzeFile', (uri) => this.analyzeFile(uri)), vscode.commands.registerCommand('mafia.analyzeFolder', (uri) => this.analyzeFolder(uri)), vscode.commands.registerCommand('mafia.aiSuggest', () => this.showAISuggestions()), vscode.commands.registerCommand('mafia.mapDependencies', (uri) => dependencyMapper.analyzeDependencies(uri)), vscode.commands.registerCommand('mafia.validateArchitecture', (uri) => architectureValidator.validateArchitecture(uri)));
+        this.context.subscriptions.push(vscode.commands.registerCommand('mafia.showComponentVisualization', () => this.showVisualization()), vscode.commands.registerCommand('mafia.showQualityDashboard', () => this.showQualityDashboard()), vscode.commands.registerCommand('mafia.analyzeFile', (uri) => this.analyzeFile(uri)), vscode.commands.registerCommand('mafia.analyzeFolder', (uri) => this.analyzeFolder(uri)), vscode.commands.registerCommand('mafia.aiSuggest', () => this.showAISuggestions()), vscode.commands.registerCommand('mafia.mapDependencies', (uri) => dependencyMapper.analyzeDependencies(uri)), vscode.commands.registerCommand('mafia.validateArchitecture', (uri) => architectureValidator.validateArchitecture(uri)), vscode.commands.registerCommand('mafia.blackboxai.suggest', () => this.handleBlackboxAISuggest()), vscode.commands.registerCommand('mafia.blackboxai.analyze', (uri) => this.handleBlackboxAIAnalyze(uri)), vscode.commands.registerCommand('mafia.blackboxai.automate', () => this.handleBlackboxAIAutomate()));
         vscode.commands.executeCommand('setContext', 'mafia.hasJavaFile', true);
     }
     async analyzeFile(uri) {
@@ -156,6 +158,56 @@ class ExtensionMain {
     showError(message, error) {
         const fullMessage = `${message}: ${error instanceof Error ? error.message : String(error)}`;
         vscode.window.showErrorMessage(fullMessage);
+    }
+    async handleBlackboxAISuggest() {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active editor');
+            return;
+        }
+        const text = editor.document.getText();
+        try {
+            const suggestions = await this.blackboxAI.getSuggestions(text);
+            const quickPick = vscode.window.createQuickPick();
+            quickPick.items = suggestions.map(s => ({ label: s }));
+            quickPick.onDidChangeSelection(selection => {
+                if (selection[0]) {
+                    editor.edit(editBuilder => {
+                        editBuilder.insert(editor.selection.active, selection[0].label);
+                    });
+                }
+                quickPick.hide();
+            });
+            quickPick.show();
+        }
+        catch (error) {
+            this.showError('Failed to get BLACKBOXAI suggestions', error);
+        }
+    }
+    async handleBlackboxAIAnalyze(uri) {
+        try {
+            const analysis = await this.blackboxAI.analyzeCode(uri.fsPath);
+            await this.visualizer.showFileAnalysis(analysis);
+            vscode.window.showInformationMessage(`BLACKBOXAI analysis complete for ${uri.fsPath}`);
+        }
+        catch (error) {
+            this.showError('BLACKBOXAI analysis failed', error);
+        }
+    }
+    async handleBlackboxAIAutomate() {
+        const url = await vscode.window.showInputBox({
+            prompt: 'Enter URL for browser automation',
+            placeHolder: 'https://example.com'
+        });
+        if (url) {
+            try {
+                await this.blackboxAI.automateBrowser(url);
+                vscode.window.showInformationMessage(`BLACKBOXAI browser automation started for ${url}`);
+            }
+            catch (error) {
+                this.showError('BLACKBOXAI browser automation failed', error);
+            }
+        }
     }
 }
 exports.ExtensionMain = ExtensionMain;

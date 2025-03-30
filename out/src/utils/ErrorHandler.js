@@ -33,8 +33,37 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ErrorHandler = void 0;
+exports.ErrorHandler = exports.LocalModelError = exports.NetworkError = exports.ModelError = exports.APIKeyError = void 0;
 const vscode = __importStar(require("vscode"));
+// Custom error classes
+class APIKeyError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'APIKeyError';
+    }
+}
+exports.APIKeyError = APIKeyError;
+class ModelError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ModelError';
+    }
+}
+exports.ModelError = ModelError;
+class NetworkError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'NetworkError';
+    }
+}
+exports.NetworkError = NetworkError;
+class LocalModelError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'LocalModelError';
+    }
+}
+exports.LocalModelError = LocalModelError;
 class ErrorHandler {
     static initialize() {
         if (!this.outputChannel) {

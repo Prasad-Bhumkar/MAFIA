@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import type { ChatCompletion, ChatCompletionChunk } from 'openai/resources/chat/completions';
 import * as vscode from 'vscode';
-import { ErrorHandler } from '../utils/ErrorHandler';
+import { ErrorHandler, APIKeyError, LocalModelError, NetworkError } from '../utils/ErrorHandler';
 
 export type AIModel = 'gpt-4-turbo' | 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-3.5-turbo-instruct' | 'llama3' | 'mistral';
 export type Language = 'java' | 'typescript' | 'python' | 'go' | 'rust';
@@ -72,7 +72,7 @@ export class AIServiceV2 {
             password: true
         });
 
-        if (!apiKey) throw new Error('API key required');
+        if (!apiKey) throw new APIKeyError('API key required - please configure in settings');
         await context.secrets.store('mafiaAI.apiKey', apiKey);
         return apiKey;
     }
@@ -84,7 +84,7 @@ export class AIServiceV2 {
             if (useLocalModel) {
                 this.localModelEndpoint = this.config.get<string>('localModelEndpoint');
                 if (!this.localModelEndpoint) {
-                    throw new Error('Local model endpoint not configured');
+                    throw new LocalModelError('Local model endpoint not configured - set mafiaAI.localModelEndpoint in settings');
                 }
                 return;
             }
@@ -237,14 +237,21 @@ Provide specific recommendations.`
                 this.responseCache.set(cacheKey, result);
                 return result;
             } else {
-                const response = await this.openai.chat.completions.create({
+            let response;
+            try {
+                response = await this.openai.chat.completions.create({
                     model,
                     messages,
                     temperature,
                     max_tokens: maxTokens
                 });
-
-                const content = response.choices[0]?.message?.content || '';
+            } catch (error) {
+                if (error instanceof Error && error.message.includes('network')) {
+                    throw new NetworkError(`Network error: ${error.message}`);
+                }
+                throw error;
+            }
+            const content = response.choices[0]?.message?.content || '';
                 const result: AIResponse = {
                     suggestions: [content],
                     explanation: 'AI-generated suggestion',
@@ -270,12 +277,73 @@ Provide specific recommendations.`
         maxTokens: number;
         onStream?: (chunk: string) => void;
     }): Promise<AIResponse> {
-        // TODO: Implement local model query logic
-        return {
-            suggestions: ['Local model response not yet implemented'],
-            explanation: 'Local model not implemented',
-            confidence: 0.8
-        };
+        try {
+            const { endpoint, messages, temperature, maxTokens, onStream } = params;
+            
+            // Validate endpoint URL
+            if (!endpoint.startsWith('http')) {
+                throw new LocalModelError('Invalid local model endpoint. Must start with http/https');
+            }
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    messages,
+                    temperature,
+                    max_tokens: maxTokens,
+                    stream: Boolean(onStream)
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new LocalModelError(`Local model error: ${errorData.error?.message || response.statusText}`);
+            }
+
+            if (onStream) {
+                // Handle streaming response
+                const reader = response.body?.getReader();
+                if (!reader) throw new Error('No response body for streaming');
+
+                let fullResponse = '';
+                const decoder = new TextDecoder();
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    fullResponse += chunk;
+                    onStream(chunk);
+                }
+
+                return {
+                    suggestions: [fullResponse],
+                    explanation: 'Local model response',
+                    confidence: 0.9
+                };
+            } else {
+                // Handle non-streaming response
+                const data = await response.json();
+                return {
+                    suggestions: [data.choices?.[0]?.message?.content || ''],
+                    explanation: data.choices?.[0]?.message?.role || 'assistant',
+                    confidence: 0.9,
+                    ...(data.tests && { tests: data.tests })
+                };
+            }
+        } catch (error) {
+            ErrorHandler.handle(error, 'Local Model Query');
+            return {
+                suggestions: ['Error querying local model: ' + (error as Error).message],
+                explanation: 'Local model error',
+                confidence: 0.1
+            };
+        }
     }
 
     private parseArchitectureReview(content: string): ArchitectureReview {

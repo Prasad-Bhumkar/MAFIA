@@ -1,7 +1,7 @@
 {
   "name": "mafia-core",
-  "version": "1.0.0",
-  "description": "MAFIA Core Platform",
+  "version": "1.2.0",
+  "description": "MAFIA Core Platform with BLACKBOXAI Integration",
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
@@ -19,8 +19,12 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^20.4.1",
     "@types/puppeteer": "^7.0.4",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
     "@types/vscode": "^1.85.0",
     "jest": "^29.7.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "ts-jest": "^29.3.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
@@ -31,7 +35,20 @@
         "command": "mafia.generateDocumentation",
         "title": "Generate Documentation",
         "category": "MAFIA"
+      },
+      {
+        "command": "mafia.showAIAssistant",
+        "title": "Show AI Assistant",
+        "category": "MAFIA"
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "mafiaAIAssistant",
+          "name": "AI Assistant"
+        }
+      ]
+    }
   }
 }

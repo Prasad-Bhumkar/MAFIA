@@ -1,13 +1,8 @@
 import * as vscode from 'vscode';
 import { AIServiceV2, AIRequest, Language } from './AIServiceV2';
 import { jest } from '@jest/globals';
-
+import OpenAI from 'openai';
 import type { ChatCompletion, ChatCompletionChunk } from 'openai/resources/chat/completions';
-
-interface ChatMessage {
-  role: 'assistant' | 'user' | 'system';
-  content: string | null;
-}
 
 // Factory function for mock completions
 function createMockCompletion(content: string): ChatCompletion {
@@ -74,8 +69,6 @@ const mockOpenAI = {
 mockOpenAI.chat.completions.create.mockImplementation(() => 
   Promise.resolve(createMockCompletion('default response')));
 
-import OpenAI from 'openai';
-
 jest.mock('openai', () => ({
   __esModule: true,
   default: jest.fn(() => mockOpenAI),
@@ -116,25 +109,6 @@ describe('AIServiceV2', () => {
         } as unknown as vscode.TextDocument
       };
 
-      async function* mockStreamGenerator() {
-        yield {
-          id: 'test-stream',
-          model: 'gpt-4-turbo',
-          choices: [{
-            delta: { content: 'streamed ', role: 'assistant' },
-            finish_reason: null
-          }]
-        };
-        yield {
-          id: 'test-stream',
-          model: 'gpt-4-turbo',
-          choices: [{
-            delta: { content: 'response', role: 'assistant' },
-            finish_reason: 'stop'
-          }]
-        };
-      }
-
       mockOpenAI.chat.completions.create.mockImplementation(() => mockStreamGenerator());
       const mockOnStream = jest.fn();
 
@@ -170,24 +144,8 @@ describe('AIServiceV2', () => {
       };
       jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue(mockConfig);
 
-      const mockCompletion = {
-        id: 'test-id',
-        model: 'gpt-4-turbo',
-        choices: [{
-          message: {
-            role: 'assistant',
-            content: 'test response'
-          },
-          finish_reason: 'stop'
-        }]
-      };
-
-      mockOpenAI.chat.completions.create.mockResolvedValue({
-        ...mockCompletion,
-        object: 'chat.completion',
-        created: Date.now(),
-        usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
-      } as unknown as ChatCompletion);
+      const mockCompletion = createMockCompletion('test response');
+      mockOpenAI.chat.completions.create.mockImplementation(async () => mockCompletion);
 
       const result = await aiService.getEnhancedSuggestions(mockRequest);
       
@@ -212,7 +170,9 @@ describe('AIServiceV2', () => {
         } as unknown as vscode.TextDocument
       };
 
-      mockOpenAI.chat.completions.create.mockRejectedValue(new Error('API error') as never);
+      mockOpenAI.chat.completions.create.mockImplementation(async () => {
+        throw new Error('API error');
+      });
 
       await expect(aiService.getEnhancedSuggestions(mockRequest))
         .rejects.toThrow('API error');
@@ -228,24 +188,8 @@ describe('AIServiceV2', () => {
         } as unknown as vscode.TextDocument
       };
 
-      const mockCompletion = {
-        id: 'test-id',
-        model: 'gpt-4-turbo',
-        choices: [{
-          message: {
-            role: 'assistant',
-            content: 'test response'
-          },
-          finish_reason: 'stop'
-        }]
-      };
-
-      mockOpenAI.chat.completions.create.mockResolvedValue({
-        ...mockCompletion,
-        object: 'chat.completion',
-        created: Date.now(),
-        usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
-      } as unknown as ChatCompletion);
+      const mockCompletion = createMockCompletion('test response');
+      mockOpenAI.chat.completions.create.mockImplementation(async () => mockCompletion);
 
       await aiService.getEnhancedSuggestions(mockRequest);
       expect(aiService.getMemoryUsage()).toBeGreaterThan(0);

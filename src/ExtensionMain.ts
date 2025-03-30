@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { BlackboxAIMock } from './ai/BlackboxAIMock';
 import { ComponentVisualizer } from './views/ComponentVisualizer';
 import { QualityDashboard } from './views/QualityDashboard';
 import { EnhancedProjectScanner } from './utils/EnhancedProjectScanner';
@@ -17,12 +18,14 @@ export class ExtensionMain {
     private docGenerator?: DocumentationGenerator;
     private docExporter?: DocumentationExporter;
     private suggestionProvider: vscode.Disposable | undefined;
+    private blackboxAI: BlackboxAIMock;
 
     constructor(private context: vscode.ExtensionContext) {
         this.visualizer = new ComponentVisualizer(context);
         this.qualityDashboard = new QualityDashboard(context);
         this.projectScanner = new EnhancedProjectScanner();
         this.aiService = AIServiceV2.getInstance(context);
+        this.blackboxAI = BlackboxAIMock.getInstance();
         // Documentation components will be initialized when needed
         this.registerCommands();
         this.setupStatusBar();
@@ -47,7 +50,13 @@ export class ExtensionMain {
             vscode.commands.registerCommand('mafia.mapDependencies',
                 (uri: vscode.Uri) => dependencyMapper.analyzeDependencies(uri)),
             vscode.commands.registerCommand('mafia.validateArchitecture',
-                (uri: vscode.Uri) => architectureValidator.validateArchitecture(uri))
+                (uri: vscode.Uri) => architectureValidator.validateArchitecture(uri)),
+            vscode.commands.registerCommand('mafia.blackboxai.suggest',
+                () => this.handleBlackboxAISuggest()),
+            vscode.commands.registerCommand('mafia.blackboxai.analyze',
+                (uri: vscode.Uri) => this.handleBlackboxAIAnalyze(uri)),
+            vscode.commands.registerCommand('mafia.blackboxai.automate',
+                () => this.handleBlackboxAIAutomate())
         );
 
         vscode.commands.executeCommand('setContext', 'mafia.hasJavaFile', true);
@@ -163,6 +172,57 @@ export class ExtensionMain {
     private showError(message: string, error: unknown) {
         const fullMessage = `${message}: ${error instanceof Error ? error.message : String(error)}`;
         vscode.window.showErrorMessage(fullMessage);
+    }
+
+    private async handleBlackboxAISuggest() {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active editor');
+            return;
+        }
+
+        const text = editor.document.getText();
+        try {
+            const suggestions = await this.blackboxAI.getSuggestions(text);
+            const quickPick = vscode.window.createQuickPick();
+            quickPick.items = suggestions.map(s => ({ label: s }));
+            quickPick.onDidChangeSelection(selection => {
+                if (selection[0]) {
+                    editor.edit(editBuilder => {
+                        editBuilder.insert(editor.selection.active, selection[0].label);
+                    });
+                }
+                quickPick.hide();
+            });
+            quickPick.show();
+        } catch (error) {
+            this.showError('Failed to get BLACKBOXAI suggestions', error);
+        }
+    }
+
+    private async handleBlackboxAIAnalyze(uri: vscode.Uri) {
+        try {
+            const analysis = await this.blackboxAI.analyzeCode(uri.fsPath);
+            await this.visualizer.showFileAnalysis(analysis);
+            vscode.window.showInformationMessage(`BLACKBOXAI analysis complete for ${uri.fsPath}`);
+        } catch (error) {
+            this.showError('BLACKBOXAI analysis failed', error);
+        }
+    }
+
+    private async handleBlackboxAIAutomate() {
+        const url = await vscode.window.showInputBox({
+            prompt: 'Enter URL for browser automation',
+            placeHolder: 'https://example.com'
+        });
+        if (url) {
+            try {
+                await this.blackboxAI.automateBrowser(url);
+                vscode.window.showInformationMessage(`BLACKBOXAI browser automation started for ${url}`);
+            } catch (error) {
+                this.showError('BLACKBOXAI browser automation failed', error);
+            }
+        }
     }
 }
 

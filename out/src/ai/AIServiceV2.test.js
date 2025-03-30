@@ -41,13 +41,23 @@ function createMockCompletion(content) {
     return {
         id: 'mock-id',
         model: 'gpt-4-turbo',
+        object: 'chat.completion',
+        created: Math.floor(Date.now() / 1000),
         choices: [{
+                index: 0,
                 message: {
                     role: 'assistant',
                     content
                 },
-                finish_reason: 'stop'
-            }]
+                finish_reason: 'stop',
+                logprobs: null
+            }],
+        usage: {
+            prompt_tokens: 10,
+            completion_tokens: 20,
+            total_tokens: 30
+        },
+        system_fingerprint: 'mock-fingerprint'
     };
 }
 // Factory function for mock streaming chunks
@@ -55,7 +65,10 @@ async function* mockStreamGenerator() {
     yield {
         id: 'test-stream',
         model: 'gpt-4-turbo',
+        object: 'chat.completion.chunk',
+        created: Math.floor(Date.now() / 1000),
         choices: [{
+                index: 0,
                 delta: { content: 'streamed ', role: 'assistant' },
                 finish_reason: null
             }]
@@ -63,7 +76,10 @@ async function* mockStreamGenerator() {
     yield {
         id: 'test-stream',
         model: 'gpt-4-turbo',
+        object: 'chat.completion.chunk',
+        created: Math.floor(Date.now() / 1000),
         choices: [{
+                index: 0,
                 delta: { content: 'response', role: 'assistant' },
                 finish_reason: 'stop'
             }]
@@ -82,7 +98,11 @@ const mockOpenAI = {
 mockOpenAI.chat.completions.create.mockImplementation(() => Promise.resolve(createMockCompletion('default response')));
 globals_1.jest.mock('openai', () => ({
     __esModule: true,
-    default: globals_1.jest.fn(() => mockOpenAI)
+    default: globals_1.jest.fn(() => mockOpenAI),
+    OpenAI: {
+        Error: class extends Error {
+        }
+    }
 }));
 describe('AIServiceV2', () => {
     let mockContext;
@@ -112,24 +132,6 @@ describe('AIServiceV2', () => {
                     getText: globals_1.jest.fn()
                 }
             };
-            async function* mockStreamGenerator() {
-                yield {
-                    id: 'test-stream',
-                    model: 'gpt-4-turbo',
-                    choices: [{
-                            delta: { content: 'streamed ', role: 'assistant' },
-                            finish_reason: null
-                        }]
-                };
-                yield {
-                    id: 'test-stream',
-                    model: 'gpt-4-turbo',
-                    choices: [{
-                            delta: { content: 'response', role: 'assistant' },
-                            finish_reason: 'stop'
-                        }]
-                };
-            }
             mockOpenAI.chat.completions.create.mockImplementation(() => mockStreamGenerator());
             const mockOnStream = globals_1.jest.fn();
             const result = await aiService.getEnhancedSuggestions(mockRequest, mockOnStream);
@@ -160,18 +162,8 @@ describe('AIServiceV2', () => {
                 update: async () => { }
             };
             globals_1.jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue(mockConfig);
-            const mockCompletion = {
-                id: 'test-id',
-                model: 'gpt-4-turbo',
-                choices: [{
-                        message: {
-                            role: 'assistant',
-                            content: 'test response'
-                        },
-                        finish_reason: 'stop'
-                    }]
-            };
-            mockOpenAI.chat.completions.create.mockResolvedValue(mockCompletion);
+            const mockCompletion = createMockCompletion('test response');
+            mockOpenAI.chat.completions.create.mockImplementation(async () => mockCompletion);
             const result = await aiService.getEnhancedSuggestions(mockRequest);
             expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith(expect.objectContaining({
                 model: 'gpt-4-turbo',
@@ -189,7 +181,9 @@ describe('AIServiceV2', () => {
                     getText: globals_1.jest.fn()
                 }
             };
-            mockOpenAI.chat.completions.create.mockRejectedValue(new Error('API error'));
+            mockOpenAI.chat.completions.create.mockImplementation(async () => {
+                throw new Error('API error');
+            });
             await expect(aiService.getEnhancedSuggestions(mockRequest))
                 .rejects.toThrow('API error');
         });
@@ -202,18 +196,8 @@ describe('AIServiceV2', () => {
                     getText: globals_1.jest.fn()
                 }
             };
-            const mockCompletion = {
-                id: 'test-id',
-                model: 'gpt-4-turbo',
-                choices: [{
-                        message: {
-                            role: 'assistant',
-                            content: 'test response'
-                        },
-                        finish_reason: 'stop'
-                    }]
-            };
-            mockOpenAI.chat.completions.create.mockResolvedValue(mockCompletion);
+            const mockCompletion = createMockCompletion('test response');
+            mockOpenAI.chat.completions.create.mockImplementation(async () => mockCompletion);
             await aiService.getEnhancedSuggestions(mockRequest);
             expect(aiService.getMemoryUsage()).toBeGreaterThan(0);
         });
