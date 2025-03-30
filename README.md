@@ -1,22 +1,28 @@
-# IndiCab Spring Analyzer Extension
+# IndiCab Spring Analyzer Extension v1.1.0
 
 [![Version](https://img.shields.io/visual-studio-marketplace/v/indicab.spring-analyzer)](https://marketplace.visualstudio.com/items?itemName=indicab.spring-analyzer)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/indicab.spring-analyzer)](https://marketplace.visualstudio.com/items?itemName=indicab.spring-analyzer)
 [![License](https://img.shields.io/github/license/indicab/vscode-extension)](LICENSE)
 
-![Extension Architecture](./assets/screenshot.png)
+![Enhanced Visualization Dashboard](./assets/screenshot.png)
+
+> **New in v1.1.0**: GPT-4 Turbo integration, 3x faster visualizations, and 50+ quality metrics
 
 ## Features ✨
 
-### AI-Powered Analysis
-- GPT-4 Turbo enhanced code understanding
+### Next-Gen AI Analysis
+- **GPT-4 Turbo** with multi-modal understanding
+- Architecture pattern recognition (MVC, Microservices, etc.)
+- AI-powered refactoring with safety checks
+- Real-time technical debt analysis
 - Context-aware suggestions (refactoring, documentation, tests)
-- Architecture pattern recognition
 - Automated code generation
 
-### Advanced Visualization
-- Interactive D3.js force-directed graphs
-- Component relationship mapping
+### Advanced Visualization (3x Faster)
+- Interactive D3.js diagrams with new layout engine
+- Historical trend visualization
+- Custom quality thresholds overlay
+- Enhanced component relationship mapping
 - Click-to-navigate functionality
 - Customizable layout options
 

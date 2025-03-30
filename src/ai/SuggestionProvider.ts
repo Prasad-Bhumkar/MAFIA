@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import { EnhancedProjectScanner } from '../utils/EnhancedProjectScanner';
-import { AIService } from './AIService';
+import { AIServiceV2, type AIRequest } from './AIServiceV2';
 
 export class SuggestionProvider implements vscode.CompletionItemProvider {
     constructor(
         private scanner: EnhancedProjectScanner,
-        private aiService: AIService
+        private aiService: AIServiceV2
     ) {}
 
     async provideCompletionItems(
@@ -15,13 +15,23 @@ export class SuggestionProvider implements vscode.CompletionItemProvider {
     ): Promise<vscode.CompletionItem[]> {
         try {
             const context = await this.scanner.getContextForPosition(document, position);
-            const suggestion = await this.aiService.getSuggestions(context);
+            const request: AIRequest = {
+                context: context,
+                language: document.languageId === 'typescript' ? 'typescript' : 'java',
+                cursorPosition: position,
+                document: document
+            };
+            const response = await this.aiService.getEnhancedSuggestions(request);
             
-            const item = new vscode.CompletionItem('AI Suggestion', vscode.CompletionItemKind.Snippet);
-            item.documentation = new vscode.MarkdownString(`**AI Generated Suggestion**\n\n${suggestion}`);
-            item.insertText = suggestion;
-            
-            return [item];
+            return response.suggestions.map(suggestion => {
+                const item = new vscode.CompletionItem('AI Suggestion', vscode.CompletionItemKind.Snippet);
+                item.documentation = new vscode.MarkdownString(
+                    `**AI Generated Suggestion**\n\n${suggestion}` +
+                    (response.explanation ? `\n\n**Explanation:** ${response.explanation}` : '')
+                );
+                item.insertText = suggestion;
+                return item;
+            });
         } catch (error) {
             vscode.window.showErrorMessage(`Suggestion failed: ${error}`);
             return [];

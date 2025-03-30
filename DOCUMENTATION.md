@@ -1,4 +1,33 @@
-# IndiCab Spring Analyzer Extension Documentation
+# IndiCab AI Extension Documentation
+
+## Version 2.0 Features
+
+### AI Integration (Phase 1)
+- **AIServiceV2**: Enhanced AI service with:
+  - Multi-model support (GPT-4 Turbo, GPT-3.5 Turbo)
+  - TypeScript and Java language support
+  - Context-aware suggestions
+- **Suggestion Provider**: 
+  - Inline code completions
+  - Detailed explanations
+  - Confidence scoring
+
+### Advanced Analysis (Phase 2)
+- **Dependency Mapper**:
+  - Visualizes project structure
+  - Identifies component relationships
+- **Architecture Validator**:
+  - Detects design pattern violations
+  - Checks layer separation
+  - Identifies circular dependencies
+
+### Optimization (Phase 3)
+- **Response Caching**:
+  - Reduces API calls
+  - Improves performance
+- **Memory Tracking**:
+  - Monitors heap usage
+  - Helps identify memory leaks
 
 ## Technical Architecture
 
@@ -30,6 +59,12 @@ graph TD
 - **Comprehensive Metrics**: 50+ code quality indicators
 - **Technical Debt Analysis**: Time/cost estimates for improvements
 - **Trend Visualization**: Historical quality tracking
+
+## Installation
+```bash
+npm install
+code --install-extension mafia.vsix
+```
 
 ## Configuration
 
@@ -87,6 +122,16 @@ npm test
 1. Open extension in VS Code
 2. Set breakpoints in source code
 3. Press F5 to launch debug session
+
+## Usage
+Available commands:
+- `indiCab.aiSuggest`: Get AI code suggestions
+- `indiCab.mapDependencies`: Analyze project structure
+- `indiCab.validateArchitecture`: Check design patterns
+
+## Troubleshooting
+- **Memory issues**: Monitor with `getMemoryUsage()`
+- **API errors**: Check key permissions and quota
 
 ## Support
 - [Documentation](https://indicab.dev/docs)

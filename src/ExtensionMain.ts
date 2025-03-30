@@ -2,27 +2,32 @@ import * as vscode from 'vscode';
 import { ComponentVisualizer } from './views/ComponentVisualizer';
 import { QualityDashboard } from './views/QualityDashboard';
 import { EnhancedProjectScanner } from './utils/EnhancedProjectScanner';
-import { AIService } from './ai/AIService';
+import { AIServiceV2, AIRequest, Language } from './ai/AIServiceV2';
 import { SuggestionProvider } from './ai/SuggestionProvider';
+import { DependencyMapper } from './analysis/DependencyMapper';
+import { ArchitectureValidator } from './analysis/ArchitectureValidator';
 
 export class ExtensionMain {
     private visualizer: ComponentVisualizer;
     private qualityDashboard: QualityDashboard;
     private projectScanner: EnhancedProjectScanner;
-    private aiService: AIService;
+    private aiService: AIServiceV2;
     private suggestionProvider: vscode.Disposable | undefined;
 
     constructor(private context: vscode.ExtensionContext) {
         this.visualizer = new ComponentVisualizer(context);
         this.qualityDashboard = new QualityDashboard(context);
         this.projectScanner = new EnhancedProjectScanner();
-        this.aiService = AIService.getInstance(context);
+        this.aiService = AIServiceV2.getInstance(context);
         this.registerCommands();
         this.setupStatusBar();
         this.registerAIComponents();
     }
 
     private registerCommands() {
+        const dependencyMapper = new DependencyMapper(this.context);
+        const architectureValidator = new ArchitectureValidator(this.context);
+
         this.context.subscriptions.push(
             vscode.commands.registerCommand('indiCab.showComponentVisualization', 
                 () => this.showVisualization()),
@@ -33,7 +38,11 @@ export class ExtensionMain {
             vscode.commands.registerCommand('indiCab.analyzeFolder',
                 (uri: vscode.Uri) => this.analyzeFolder(uri)),
             vscode.commands.registerCommand('indiCab.aiSuggest',
-                () => this.showAISuggestions())
+                () => this.showAISuggestions()),
+            vscode.commands.registerCommand('indiCab.mapDependencies',
+                (uri: vscode.Uri) => dependencyMapper.analyzeDependencies(uri)),
+            vscode.commands.registerCommand('indiCab.validateArchitecture',
+                (uri: vscode.Uri) => architectureValidator.validateArchitecture(uri))
         );
 
         vscode.commands.executeCommand('setContext', 'indiCab.hasJavaFile', true);
@@ -121,10 +130,16 @@ export class ExtensionMain {
                 editor.document,
                 editor.selection.active
             );
-            const suggestion = await this.aiService.getSuggestions(context);
+            const request: AIRequest = {
+                context: context,
+                language: editor.document.languageId === 'typescript' ? 'typescript' : 'java' as Language,
+                cursorPosition: editor.selection.active,
+                document: editor.document
+            };
+            const response = await this.aiService.getEnhancedSuggestions(request);
             
             await editor.edit(editBuilder => {
-                editBuilder.insert(editor.selection.active, suggestion);
+                editBuilder.insert(editor.selection.active, response.suggestions[0]);
             });
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to get suggestions: ${error}`);
