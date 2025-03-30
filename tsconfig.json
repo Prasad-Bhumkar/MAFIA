@@ -1,23 +1,16 @@
 {
   "compilerOptions": {
+    "target": "ES2020",
     "module": "commonjs",
-    "target": "ES6",
-    "outDir": "out",
-    "rootDir": "src",
-    "sourceMap": true,
-    "strict": true,
     "esModuleInterop": true,
+    "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["jest", "node"]
+    "outDir": "./out",
+    "rootDir": ".",
+    "sourceMap": true
   },
-  "include": [
-    "src/**/*",
-    "**/*.test.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out"
-  ]
+  "include": ["src/**/*", "__tests__/**/*"],
+  "types": ["jest"],
+  "exclude": ["node_modules"]
 }

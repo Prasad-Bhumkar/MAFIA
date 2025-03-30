@@ -1,168 +1,28 @@
 {
-  "name": "mafia",
-  "displayName": "MAFIA",
-  "description": "Modern Architecture Framework & Intelligent Analyzer for Spring Boot applications",
-  "version": "1.1.1",
-  "engines": {
-    "vscode": "^1.75.0"
-  },
-  "categories": [
-    "Programming Languages",
-    "Visualization",
-    "AI"
-  ],
-  "activationEvents": [
-    "onCommand:mafia.showComponentVisualization",
-    "onCommand:mafia.showQualityDashboard",
-    "onCommand:mafia.analyzeFile",
-    "onCommand:mafia.analyzeFolder",
-    "onLanguage:java"
-  ],
-  "main": "./out/ExtensionMain.js",
-"contributes": {
-    "commands": [
-        {
-            "command": "mafia.showAgentPanel",
-            "title": "Show Agent Panel",
-            "category": "MAFIA AI"
-        },
-        {
-            "command": "mafia.executeAgentTask",
-            "title": "Execute Agent Task",
-            "category": "MAFIA AI"
-        },
-      {
-        "command": "mafia.showComponentVisualization",
-        "title": "Show Component Visualization",
-        "category": "MAFIA"
-      },
-      {
-        "command": "mafia.showQualityDashboard",
-        "title": "Show Quality Dashboard",
-        "category": "MAFIA"
-      },
-      {
-        "command": "mafia.analyzeFile",
-        "title": "Analyze Java File",
-        "category": "MAFIA"
-      },
-      {
-        "command": "mafia.analyzeFolder",
-        "title": "Analyze Java Folder",
-        "category": "MAFIA"
-      },
-      {
-        "command": "mafia.aiSuggest",
-        "title": "Get AI Suggestions",
-        "category": "MAFIA AI"
-      }
-    ],
-    "configuration": {
-        "mafia.agent": {
-            "type": "object",
-            "title": "Agent Settings",
-            "properties": {
-                "mafia.agent.maxConcurrentOperations": {
-                    "type": "number",
-                    "default": 3,
-                    "description": "Maximum number of concurrent agent operations"
-                },
-                "mafia.agent.requireConfirmation": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Require confirmation for file modifications"
-                }
-            }
-        },
-      "title": "MAFIA",
-      "properties": {
-        "mafia.qualityThresholds.coverage": {
-          "type": "number",
-          "default": 80,
-          "description": "Minimum test coverage percentage"
-        },
-        "mafia.qualityThresholds.complexity": {
-          "type": "number",
-          "default": 10,
-          "description": "Maximum cyclomatic complexity"
-        },
-        "mafiaAI.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "OpenAI API key for AI suggestions",
-          "scope": "application"
-        },
-        "mafiaAI.model": {
-          "type": "string",
-          "default": "gpt-4-turbo",
-          "description": "AI model to use for completions",
-          "enum": [
-            "gpt-4-turbo",
-            "gpt-3.5-turbo",
-            "gpt-4",
-            "gpt-3.5-turbo-instruct"
-          ],
-          "scope": "application"
-        },
-        "mafiaAI.maxTokens": {
-          "type": "number",
-          "default": 1000,
-          "description": "Maximum number of tokens to generate",
-          "scope": "application"
-        },
-        "mafiaAI.timeout": {
-          "type": "number",
-          "default": 30000,
-          "description": "Timeout in milliseconds for API requests",
-          "scope": "application"
-        },
-        "mafiaAI.temperature": {
-          "type": "number",
-          "default": 0.7,
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Creativity of AI suggestions",
-          "scope": "application"
-        }
-      }
-    }
-  },
+  "name": "mafia-core",
+  "version": "1.0.0",
+  "description": "MAFIA Core Platform",
+  "main": "src/index.ts",
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts",
-    "test": "npm run compile && node ./out/test/runTest.js"
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "jest"
   },
-"dependencies": {
-    "@anthropic-ai/sdk": "^0.26.0",
-    "puppeteer-core": "^23.4.0",
-    "openai": "^4.90.0",
-    "vscode-languageclient": "^8.1.0"
+  "dependencies": {
+    "express": "^4.18.2",
+    "fs-extra": "^11.1.1",
+    "openai": "^4.0.0",
+    "puppeteer": "^24.4.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.17",
     "@types/jest": "^29.5.14",
-    "@types/node": "16.x",
-    "@types/vscode": "^1.75.0",
-    "@typescript-eslint/eslint-plugin": "^5.1.0",
-    "@typescript-eslint/parser": "^5.1.0",
-    "eslint": "^8.1.0",
+    "@types/node": "^20.4.1",
+    "@types/puppeteer": "^7.0.4",
+    "@types/vscode": "^1.85.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.3.0",
-    "typescript": "^4.4.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/example/mafia-extension.git"
-  },
-  "publisher": "your-publisher-name",
-  "icon": "assets/icon.png",
-  "keywords": [
-    "spring",
-    "java",
-    "visualization",
-    "architecture",
-    "ai",
-    "copilot"
-  ]
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
 }
