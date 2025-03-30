@@ -1,0 +1,17 @@
+# Development files
+src/
+tsconfig.json
+*.ts
+*.map
+
+# Test files
+sample-project/
+test/
+
+# Documentation
+DOCUMENTATION.md
+FINAL_PLAN.md
+RELEASE_NOTES.md
+
+# Node modules (should be bundled)
+node_modules/

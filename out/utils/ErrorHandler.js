@@ -28,7 +28,7 @@ const vscode = __importStar(require("vscode"));
 class ErrorHandler {
     static initialize() {
         if (!this.outputChannel) {
-            this.outputChannel = vscode.window.createOutputChannel('IndiCab AI Errors');
+            this.outputChannel = vscode.window.createOutputChannel('MAFIA AI Errors');
         }
     }
     static handle(error, context = '') {
@@ -42,7 +42,7 @@ class ErrorHandler {
         }
         const fullMessage = `[${new Date().toISOString()}] ${context}: ${message}`;
         // Show user-friendly message
-        vscode.window.showErrorMessage(`[IndiCab AI] ${context}: ${message}`);
+        vscode.window.showErrorMessage(`[MAFIA AI] ${context}: ${message}`);
         // Log detailed error to output channel
         this.outputChannel.appendLine(fullMessage);
         if (error instanceof Error && error.stack) {

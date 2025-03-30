@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.1 - 2023-11-15
+### Added
+- Enhanced AI service with BLACKBOXAI persona
+- Optimized extension packaging with .vscodeignore
+
+### Changed
+- Updated system prompts for more technical, complete responses
+- Improved response quality for Java and TypeScript
+
 ## [1.1.0] - 2023-11-15
 ### Changed
 - Rebranded from "IndiCab Spring Analyzer" to "MAFIA"

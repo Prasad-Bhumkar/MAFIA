@@ -41,7 +41,7 @@ const vscode = __importStar(require("vscode"));
 const ErrorHandler_1 = require("../utils/ErrorHandler");
 class AIService {
     constructor(context) {
-        this.config = vscode.workspace.getConfiguration('indicabAI');
+        this.config = vscode.workspace.getConfiguration('mafiaAI');
         this.initializeOpenAI(context);
     }
     static getInstance(context) {
@@ -73,7 +73,7 @@ class AIService {
             if (configKey)
                 return configKey;
             try {
-                const secretKey = yield context.secrets.get('indicabAI.apiKey');
+                const secretKey = yield context.secrets.get('mafiaAI.apiKey');
                 if (secretKey)
                     return secretKey;
             }
@@ -93,7 +93,7 @@ class AIService {
             });
             if (!apiKey)
                 throw new Error('API key required');
-            yield context.secrets.store('indicabAI.apiKey', apiKey);
+            yield context.secrets.store('mafiaAI.apiKey', apiKey);
             return apiKey;
         });
     }
@@ -120,7 +120,7 @@ class AIService {
     }
     clearApiKey(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield context.secrets.delete('indicabAI.apiKey');
+            yield context.secrets.delete('mafiaAI.apiKey');
         });
     }
 }

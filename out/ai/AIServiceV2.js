@@ -31,6 +31,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -41,7 +48,7 @@ const vscode = __importStar(require("vscode"));
 const ErrorHandler_1 = require("../utils/ErrorHandler");
 class AIServiceV2 {
     constructor(context) {
-        this.config = vscode.workspace.getConfiguration('indicabAI');
+        this.config = vscode.workspace.getConfiguration('mafiaAI');
         this.responseCache = new Map();
         this.memoryUsage = 0;
         this.initializeOpenAI(context);
@@ -76,7 +83,7 @@ class AIServiceV2 {
             if (configKey)
                 return configKey;
             try {
-                const secretKey = yield context.secrets.get('indicabAI.apiKey');
+                const secretKey = yield context.secrets.get('mafiaAI.apiKey');
                 if (secretKey)
                     return secretKey;
             }
@@ -96,47 +103,97 @@ class AIServiceV2 {
             });
             if (!apiKey)
                 throw new Error('API key required');
-            yield context.secrets.store('indicabAI.apiKey', apiKey);
+            yield context.secrets.store('mafiaAI.apiKey', apiKey);
             return apiKey;
         });
     }
-    getEnhancedSuggestions(request) {
-        var _a, _b, _c;
+    getEnhancedSuggestions(request, onStream) {
+        var _a, e_1, _b, _c;
+        var _d, _e, _f, _g, _h;
         return __awaiter(this, void 0, void 0, function* () {
             const cacheKey = this.generateCacheKey(request);
             const cachedResponse = this.responseCache.get(cacheKey);
-            if (cachedResponse) {
+            if (cachedResponse && !onStream) {
                 return cachedResponse;
             }
             try {
                 const startMemory = process.memoryUsage().heapUsed;
                 const model = this.config.get('model') || 'gpt-4-turbo';
                 const temperature = this.config.get('temperature') || 0.7;
+                const maxTokens = this.config.get('maxTokens') || 1000;
+                const timeout = this.config.get('timeout') || 30000;
                 const messages = [
                     {
                         role: 'system',
-                        content: `You are a ${request.language} coding assistant. Provide helpful, idiomatic code suggestions.`
+                        content: `You are BLACKBOXAI, a highly skilled software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices. Follow these rules:
+1. Be direct and technical in responses
+2. Focus on clean, modern code
+3. Provide complete solutions
+4. Use industry best practices
+5. For ${request.language} specifically:
+   - Follow language idioms
+   - Include proper error handling
+   - Document complex logic`
                     },
                     {
                         role: 'user',
                         content: request.context
                     }
                 ];
-                const response = yield this.openai.chat.completions.create({
-                    model,
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+                let fullResponse = '';
+                const requestOptions = Object.assign({ model,
                     messages,
-                    temperature,
-                    max_tokens: 500
-                });
-                const endMemory = process.memoryUsage().heapUsed;
-                this.memoryUsage = endMemory - startMemory;
-                const result = {
-                    suggestions: [((_c = (_b = (_a = response.choices[0]) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.content) === null || _c === void 0 ? void 0 : _c.trim()) || ''],
-                    explanation: 'AI-generated suggestion',
-                    confidence: 0.9
-                };
-                this.responseCache.set(cacheKey, result);
-                return result;
+                    temperature, max_tokens: maxTokens }, (onStream ? { stream: true } : {}));
+                const response = yield this.openai.chat.completions.create(requestOptions, { signal: controller.signal });
+                if (onStream && 'pipe' in response) {
+                    try {
+                        // Handle streaming response
+                        for (var _j = true, _k = __asyncValues(response), _l; _l = yield _k.next(), _a = _l.done, !_a;) {
+                            _c = _l.value;
+                            _j = false;
+                            try {
+                                const chunk = _c;
+                                const content = ((_e = (_d = chunk.choices[0]) === null || _d === void 0 ? void 0 : _d.delta) === null || _e === void 0 ? void 0 : _e.content) || '';
+                                fullResponse += content;
+                                onStream(content);
+                            }
+                            finally {
+                                _j = true;
+                            }
+                        }
+                    }
+                    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                    finally {
+                        try {
+                            if (!_j && !_a && (_b = _k.return)) yield _b.call(_k);
+                        }
+                        finally { if (e_1) throw e_1.error; }
+                    }
+                    clearTimeout(timeoutId);
+                    const result = {
+                        suggestions: [fullResponse],
+                        explanation: 'AI-generated suggestion',
+                        confidence: 0.9
+                    };
+                    this.responseCache.set(cacheKey, result);
+                    return result;
+                }
+                else {
+                    // Handle non-streaming response
+                    const completion = response;
+                    const endMemory = process.memoryUsage().heapUsed;
+                    this.memoryUsage = endMemory - startMemory;
+                    const result = {
+                        suggestions: [((_h = (_g = (_f = completion.choices[0]) === null || _f === void 0 ? void 0 : _f.message) === null || _g === void 0 ? void 0 : _g.content) === null || _h === void 0 ? void 0 : _h.trim()) || ''],
+                        explanation: 'AI-generated suggestion',
+                        confidence: 0.9
+                    };
+                    this.responseCache.set(cacheKey, result);
+                    clearTimeout(timeoutId);
+                    return result;
+                }
             }
             catch (error) {
                 ErrorHandler_1.ErrorHandler.handle(error, 'Getting Enhanced AI Suggestions');
@@ -146,7 +203,7 @@ class AIServiceV2 {
     }
     clearApiKey(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield context.secrets.delete('indicabAI.apiKey');
+            yield context.secrets.delete('mafiaAI.apiKey');
             this.responseCache.clear();
         });
     }

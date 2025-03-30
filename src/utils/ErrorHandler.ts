@@ -1,7 +1,15 @@
 import * as vscode from 'vscode';
 
+export interface OperationContext {
+    operationId: string;
+    operationType: 'file' | 'browser' | 'command';
+    retryCount?: number;
+    rollback?: () => Promise<void>;
+}
+
 export class ErrorHandler {
     private static outputChannel: vscode.OutputChannel;
+    private static operationLogs: Map<string, string[]> = new Map();
 
     public static initialize() {
         if (!this.outputChannel) {
@@ -9,7 +17,11 @@ export class ErrorHandler {
         }
     }
 
-    public static handle(error: unknown, context: string = ''): void {
+    public static handle(
+        error: unknown, 
+        context: string = '', 
+        operation?: OperationContext
+    ): void {
         this.initialize();
         
         let message = 'An error occurred';
@@ -21,22 +33,87 @@ export class ErrorHandler {
 
         const fullMessage = `[${new Date().toISOString()}] ${context}: ${message}`;
         
-        // Show user-friendly message
-        vscode.window.showErrorMessage(`[MAFIA AI] ${context}: ${message}`);
+        // Enhanced operation tracking
+        if (operation) {
+            const opLog = this.operationLogs.get(operation.operationId) || [];
+            opLog.push(fullMessage);
+            this.operationLogs.set(operation.operationId, opLog);
+
+            // Automatic retry logic
+            if (operation.retryCount && operation.retryCount > 0) {
+                vscode.window.showWarningMessage(
+                    `[MAFIA AI] Retrying operation (${operation.retryCount} attempts left)...`,
+                    'Cancel'
+                ).then(selection => {
+                    if (selection === 'Cancel') {
+                        operation.rollback?.();
+                    }
+                });
+                return;
+            }
+
+            // Rollback if available
+            if (operation.rollback) {
+                vscode.window.showErrorMessage(
+                    `[MAFIA AI] Operation failed - attempting rollback`,
+                    'View Details'
+                ).then(selection => {
+                    if (selection === 'View Details') {
+                        this.showOperationLog(operation.operationId);
+                    }
+                });
+                operation.rollback();
+            } else {
+                vscode.window.showErrorMessage(
+                    `[MAFIA AI] ${context}: ${message}`,
+                    'View Details'
+                ).then(selection => {
+                    if (selection === 'View Details') {
+                        this.showOperationLog(operation.operationId);
+                    }
+                });
+            }
+        } else {
+            // Original behavior for non-operation errors
+            vscode.window.showErrorMessage(`[MAFIA AI] ${context}: ${message}`);
+        }
         
-        // Log detailed error to output channel
+        // Log detailed error
         this.outputChannel.appendLine(fullMessage);
-        
         if (error instanceof Error && error.stack) {
             this.outputChannel.appendLine(error.stack);
         }
-        
         this.outputChannel.show(true);
     }
 
-    public static log(message: string, context: string = '') {
+    public static log(message: string, context: string = '', operationId?: string) {
         this.initialize();
         const fullMessage = `[${new Date().toISOString()}] ${context}: ${message}`;
+        
+        if (operationId) {
+            const opLog = this.operationLogs.get(operationId) || [];
+            opLog.push(fullMessage);
+            this.operationLogs.set(operationId, opLog);
+        }
+        
         this.outputChannel.appendLine(fullMessage);
+    }
+
+    private static showOperationLog(operationId: string) {
+        const logs = this.operationLogs.get(operationId) || [];
+        const panel = vscode.window.createWebviewPanel(
+            'operationLog',
+            `Operation ${operationId} Log`,
+            vscode.ViewColumn.Two,
+            {}
+        );
+        panel.webview.html = `<!DOCTYPE html>
+            <html>
+            <head><title>Operation Log</title></head>
+            <body>
+                <h1>Operation ${operationId} Log</h1>
+                <pre>${logs.join('\n')}</pre>
+            </body>
+            </html>`;
     }
 }
