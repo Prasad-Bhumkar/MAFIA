@@ -1,12 +1,16 @@
-# IndiCab Spring Analyzer Extension v1.1.0
+# MAFIA - Modern Architecture Framework & Intelligent Analyzer v1.1.0
 
-[![Version](https://img.shields.io/visual-studio-marketplace/v/indicab.spring-analyzer)](https://marketplace.visualstudio.com/items?itemName=indicab.spring-analyzer)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/indicab.spring-analyzer)](https://marketplace.visualstudio.com/items?itemName=indicab.spring-analyzer)
+[![Version](https://img.shields.io/visual-studio-marketplace/v/mafia)](https://marketplace.visualstudio.com/items?itemName=mafia)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/mafia)](https://marketplace.visualstudio.com/items?itemName=mafia)
 [![License](https://img.shields.io/github/license/indicab/vscode-extension)](LICENSE)
 
 ![Enhanced Visualization Dashboard](./assets/screenshot.png)
 
-> **New in v1.1.0**: GPT-4 Turbo integration, 3x faster visualizations, and 50+ quality metrics
+> **New in v1.1.0**: 
+> - GPT-4 Turbo integration 
+> - 3x faster visualizations 
+> - 50+ quality metrics
+> - Rebranded as MAFIA
 
 ## Features ✨
 
@@ -46,7 +50,7 @@
 
 ## Quick Start 🚀
 
-1. **Install** from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=indicab.spring-analyzer)
+1. **Install** from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=mafia)
 2. **Open** a Spring Boot project
 3. **Explore** using:
    - Sidebar views (Project Navigator, Quality Dashboard)
@@ -64,8 +68,8 @@ For detailed usage instructions, configuration options, and troubleshooting:
 ## Feedback & Support 💬
 
 Found an issue or have a suggestion?
-- [Report Issues](https://github.com/indicab/vscode-extension/issues)
-- [Join Discussion](https://github.com/indicab/vscode-extension/discussions)
+- [Report Issues](https://github.com/example/mafia-extension/issues)
+- [Join Discussion](https://github.com/example/mafia-extension/discussions)
 
 ## Contributing 🤝
 

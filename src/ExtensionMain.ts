@@ -29,23 +29,23 @@ export class ExtensionMain {
         const architectureValidator = new ArchitectureValidator(this.context);
 
         this.context.subscriptions.push(
-            vscode.commands.registerCommand('indiCab.showComponentVisualization', 
+            vscode.commands.registerCommand('mafia.showComponentVisualization',
                 () => this.showVisualization()),
-            vscode.commands.registerCommand('indiCab.showQualityDashboard',
+            vscode.commands.registerCommand('mafia.showQualityDashboard',
                 () => this.showQualityDashboard()),
-            vscode.commands.registerCommand('indiCab.analyzeFile',
+            vscode.commands.registerCommand('mafia.analyzeFile',
                 (uri: vscode.Uri) => this.analyzeFile(uri)),
-            vscode.commands.registerCommand('indiCab.analyzeFolder',
+            vscode.commands.registerCommand('mafia.analyzeFolder',
                 (uri: vscode.Uri) => this.analyzeFolder(uri)),
-            vscode.commands.registerCommand('indiCab.aiSuggest',
+            vscode.commands.registerCommand('mafia.aiSuggest',
                 () => this.showAISuggestions()),
-            vscode.commands.registerCommand('indiCab.mapDependencies',
+            vscode.commands.registerCommand('mafia.mapDependencies',
                 (uri: vscode.Uri) => dependencyMapper.analyzeDependencies(uri)),
-            vscode.commands.registerCommand('indiCab.validateArchitecture',
+            vscode.commands.registerCommand('mafia.validateArchitecture',
                 (uri: vscode.Uri) => architectureValidator.validateArchitecture(uri))
         );
 
-        vscode.commands.executeCommand('setContext', 'indiCab.hasJavaFile', true);
+        vscode.commands.executeCommand('setContext', 'mafia.hasJavaFile', true);
     }
 
     private async analyzeFile(uri: vscode.Uri) {
@@ -73,14 +73,14 @@ export class ExtensionMain {
             vscode.StatusBarAlignment.Right, 100);
         visualizationItem.text = '$(circuit-board) Components';
         visualizationItem.tooltip = 'Show component relationships';
-        visualizationItem.command = 'indiCab.showComponentVisualization';
+        visualizationItem.command = 'mafia.showComponentVisualization';
         visualizationItem.show();
 
         const dashboardItem = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right, 99);
         dashboardItem.text = '$(dashboard) Quality';
         dashboardItem.tooltip = 'Show quality metrics';
-        dashboardItem.command = 'indiCab.showQualityDashboard';
+        dashboardItem.command = 'mafia.showQualityDashboard';
         dashboardItem.show();
 
         this.context.subscriptions.push(visualizationItem, dashboardItem);
@@ -163,9 +163,9 @@ export class ExtensionMain {
 
 export function activate(context: vscode.ExtensionContext) {
     new ExtensionMain(context);
-    console.log('IndiCab AI extension is now active!');
+    console.log('MAFIA extension is now active!');
 }
 
 export function deactivate() {
-    console.log('IndiCab AI extension is now deactivated');
+    console.log('MAFIA extension is now deactivated');
 }

@@ -1,7 +1,7 @@
 {
   "name": "mafia",
-  "displayName": "IndiCab Spring Analyzer",
-  "description": "Visualization and analysis tool for Spring Boot applications with AI assistance",
+  "displayName": "MAFIA",
+  "description": "Modern Architecture Framework & Intelligent Analyzer for Spring Boot applications",
   "version": "1.1.0",
   "engines": {
     "vscode": "^1.75.0"
@@ -12,61 +12,61 @@
     "AI"
   ],
   "activationEvents": [
-    "onCommand:indiCab.showComponentVisualization",
-    "onCommand:indiCab.showQualityDashboard",
-    "onCommand:indiCab.analyzeFile",
-    "onCommand:indiCab.analyzeFolder",
+    "onCommand:mafia.showComponentVisualization",
+    "onCommand:mafia.showQualityDashboard",
+    "onCommand:mafia.analyzeFile",
+    "onCommand:mafia.analyzeFolder",
     "onLanguage:java"
   ],
   "main": "./out/ExtensionMain.js",
   "contributes": {
     "commands": [
       {
-        "command": "indiCab.showComponentVisualization",
+        "command": "mafia.showComponentVisualization",
         "title": "Show Component Visualization",
-        "category": "IndiCab"
+        "category": "MAFIA"
       },
       {
-        "command": "indiCab.showQualityDashboard",
+        "command": "mafia.showQualityDashboard",
         "title": "Show Quality Dashboard",
-        "category": "IndiCab"
+        "category": "MAFIA"
       },
       {
-        "command": "indiCab.analyzeFile",
+        "command": "mafia.analyzeFile",
         "title": "Analyze Java File",
-        "category": "IndiCab"
+        "category": "MAFIA"
       },
       {
-        "command": "indiCab.analyzeFolder",
+        "command": "mafia.analyzeFolder",
         "title": "Analyze Java Folder",
-        "category": "IndiCab"
+        "category": "MAFIA"
       },
       {
-        "command": "indiCab.aiSuggest",
+        "command": "mafia.aiSuggest",
         "title": "Get AI Suggestions",
-        "category": "IndiCab AI"
+        "category": "MAFIA AI"
       }
     ],
     "configuration": {
-      "title": "IndiCab",
+      "title": "MAFIA",
       "properties": {
-        "indicab.qualityThresholds.coverage": {
+        "mafia.qualityThresholds.coverage": {
           "type": "number",
           "default": 80,
           "description": "Minimum test coverage percentage"
         },
-        "indicab.qualityThresholds.complexity": {
+        "mafia.qualityThresholds.complexity": {
           "type": "number",
           "default": 10,
           "description": "Maximum cyclomatic complexity"
         },
-        "indicabAI.apiKey": {
+        "mafiaAI.apiKey": {
           "type": "string",
           "default": "",
           "description": "OpenAI API key for AI suggestions",
           "scope": "application"
         },
-        "indicabAI.model": {
+        "mafiaAI.model": {
           "type": "string",
           "default": "code-davinci-002",
           "description": "AI model to use for completions",
@@ -76,7 +76,7 @@
           ],
           "scope": "application"
         },
-        "indicabAI.temperature": {
+        "mafiaAI.temperature": {
           "type": "number",
           "default": 0.7,
           "minimum": 0,
@@ -108,7 +108,7 @@
     },
   "repository": {
     "type": "git",
-    "url": "https://github.com/example/indicab-extension.git"
+    "url": "https://github.com/example/mafia-extension.git"
   },
   "publisher": "your-publisher-name",
   "icon": "assets/icon.png",

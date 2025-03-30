@@ -1,4 +1,8 @@
-it g# Changelog
+# Changelog
+
+## [1.1.0] - 2023-11-15
+### Changed
+- Rebranded from "IndiCab Spring Analyzer" to "MAFIA"
 
 All notable changes to this project will be documented in this file.
 

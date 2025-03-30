@@ -27,7 +27,7 @@ export class AIServiceV2 {
     private memoryUsage: number;
 
     private constructor(context: vscode.ExtensionContext) {
-        this.config = vscode.workspace.getConfiguration('indicabAI');
+        this.config = vscode.workspace.getConfiguration('mafiaAI');
         this.responseCache = new Map();
         this.memoryUsage = 0;
         this.initializeOpenAI(context);
@@ -62,7 +62,7 @@ export class AIServiceV2 {
         if (configKey) return configKey;
 
         try {
-            const secretKey = await context.secrets.get('indicabAI.apiKey');
+            const secretKey = await context.secrets.get('mafiaAI.apiKey');
             if (secretKey) return secretKey;
         } catch (error) {
             ErrorHandler.handle(error, 'Retrieving API Key');
@@ -80,7 +80,7 @@ export class AIServiceV2 {
         });
 
         if (!apiKey) throw new Error('API key required');
-        await context.secrets.store('indicabAI.apiKey', apiKey);
+        await context.secrets.store('mafiaAI.apiKey', apiKey);
         return apiKey;
     }
 
@@ -131,7 +131,7 @@ export class AIServiceV2 {
     }
 
     public async clearApiKey(context: vscode.ExtensionContext): Promise<void> {
-        await context.secrets.delete('indicabAI.apiKey');
+        await context.secrets.delete('mafiaAI.apiKey');
         this.responseCache.clear();
     }
 

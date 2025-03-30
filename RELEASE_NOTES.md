@@ -1,4 +1,9 @@
-# IndiCab Spring Analyzer 1.1.0 Release Notes
+# MAFIA 1.1.0 Release Notes
+### Rebranding
+- Changed name from "IndiCab Spring Analyzer" to "MAFIA" (Modern Architecture Framework & Intelligent Analyzer)
+- Updated all command prefixes from `indiCab` to `mafia`
+- Updated all configuration settings from `indicab` to `mafia`
+
 
 ## What's New
 
@@ -29,4 +34,4 @@
 - Some edge cases in architecture pattern detection
 
 ## Feedback
-Please report any issues to our GitHub repository
+Please report any issues to our GitHub repository: https://github.com/example/mafia-extension/issues
