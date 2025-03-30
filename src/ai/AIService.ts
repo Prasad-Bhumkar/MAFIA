@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import * as vscode from 'vscode';
 import { ErrorHandler } from '../utils/ErrorHandler';
+import RateLimiter from '../utils/RateLimiter';
 
 interface CacheEntry {
     value: string;
@@ -15,11 +16,17 @@ export class AIService {
     private maxCacheSize: number;
     private cacheTTL: number;
 
+    private rateLimiter: RateLimiter;
+
     private constructor(context: vscode.ExtensionContext) {
         this.config = vscode.workspace.getConfiguration('mafiaAI');
         this.cache = new Map();
         this.maxCacheSize = this.config.get<number>('cacheSize') || 100;
         this.cacheTTL = this.config.get<number>('cacheTTL') || 3600; // 1 hour default
+        this.rateLimiter = new RateLimiter(
+            this.config.get<number>('rateLimit') || 60, // Default: 60 requests
+            this.config.get<number>('rateLimitWindow') || 60_000 // Default: 1 minute window
+        );
         this.initializeOpenAI(context);
     }
 
@@ -73,26 +80,44 @@ export class AIService {
         return apiKey;
     }
 
-    public async getSuggestions(context: string): Promise<string> {
+    public async getSuggestions(context: string, streamCallback?: (chunk: string) => void): Promise<string> {
         try {
+            // Check rate limit
+            if (this.rateLimiter.isRateLimited()) {
+                throw new Error('Rate limit exceeded. Please wait before making more requests.');
+            }
+
             // Check cache first
             const cached = this.getFromCache(context);
             if (cached) {
                 return cached;
             }
 
-            const model = this.config.get<string>('model') || 'gpt-3.5-turbo-instruct';
+            const model = this.config.get<string>('model') || 'gpt-3.5-turbo';
             const temperature = this.config.get<number>('temperature') || 0.7;
 
-            const response = await this.openai.completions.create({
+            const response = await this.openai.chat.completions.create({
                 model,
-                prompt: context,
+                messages: [{ role: 'user', content: context }],
                 max_tokens: 100,
                 temperature,
-                stop: ['\n\n', '//', '/*']
+                stop: ['\n\n', '//', '/*'],
+                stream: Boolean(streamCallback)
             });
 
-            const result = response.choices[0]?.text?.trim() || '';
+            let result = '';
+            
+            if (streamCallback) {
+                const stream = response as AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
+                for await (const chunk of stream) {
+                    const content = chunk.choices[0]?.delta?.content || '';
+                    result += content;
+                    streamCallback(content);
+                }
+            } else {
+                const completion = response as OpenAI.Chat.Completions.ChatCompletion;
+                result = completion.choices[0]?.message?.content?.trim() || '';
+            }
             this.addToCache(context, result);
             return result;
         } catch (error) {

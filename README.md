@@ -21,6 +21,15 @@
 - Real-time technical debt analysis
 - Context-aware suggestions (refactoring, documentation, tests)
 - Automated code generation
+- **Streaming API** for real-time responses:
+  ```typescript
+  const result = await aiService.getSuggestions(prompt, (chunk) => {
+    // Handle real-time updates
+    console.log('Received chunk:', chunk);
+  });
+  // Full accumulated response
+  console.log('Complete response:', result);
+  ```
 
 ### Advanced Visualization (3x Faster)
 - Interactive D3.js diagrams with new layout engine

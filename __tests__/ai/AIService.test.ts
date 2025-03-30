@@ -44,24 +44,24 @@ describe('AIService', () => {
         // Mock the OpenAI API at a higher level
         // Mock the completions API directly
         const mockCreate = jest.fn().mockResolvedValue({
-            choices: [{ text: mockResponse }]
+            choices: [{ message: { content: mockResponse } }]
         });
         // Create a full mock OpenAI client
         aiService['openai'] = {
             apiKey: 'test-api-key',
             organization: 'test-org',
-            completions: {
-                create: mockCreate,
-                _client: {
-                    baseURL: 'https://api.openai.com',
-                    defaults: {},
-                    request: jest.fn()
-                }
-            },
             chat: {
                 completions: {
-                    create: jest.fn()
+                    create: mockCreate,
+                    _client: {
+                        baseURL: 'https://api.openai.com',
+                        defaults: {},
+                        request: jest.fn()
+                    }
                 }
+            },
+            completions: {
+                create: jest.fn()
             }
         } as any;
 
@@ -74,6 +74,34 @@ describe('AIService', () => {
         const result2 = await aiService.getSuggestions(prompt);
         expect(result2).toBe(mockResponse);
         expect(mockCreate).toHaveBeenCalledTimes(1); // Still only called once
+    });
+
+    it('should handle streaming responses', async () => {
+        const mockResponse = "Streaming response";
+        const mockStream = (async function* () {
+            yield { choices: [{ delta: { content: "Streaming " } }] };
+            yield { choices: [{ delta: { content: "response" } }] };
+        })();
+        
+        const mockCreate = jest.fn().mockReturnValue(mockStream);
+        aiService['openai'] = {
+            chat: {
+                completions: {
+                    create: mockCreate
+                }
+            }
+        } as any;
+
+        const mockCallback = jest.fn();
+        const result = await aiService.getSuggestions("test prompt", mockCallback);
+
+        expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+            stream: true
+        }));
+        expect(mockCallback).toHaveBeenCalledTimes(2);
+        expect(mockCallback).toHaveBeenCalledWith("Streaming ");
+        expect(mockCallback).toHaveBeenCalledWith("response");
+        expect(result).toBe("Streaming response");
     });
 
     it('should expire cache entries', async () => {
