@@ -1,9 +1,45 @@
 
-# PROJECT: MAFIA
+# MAFIA Development Toolkit
+![Version Badge](https://img.shields.io/badge/Version-1.1.1-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## Core Functionalities Decomposition
+> Modern AI-powered Framework for Intelligent Automation
 
-### 1. Code Analysis & Understanding
+## ✨ Key Features
+
+### 🧠 AI-Powered Code Assistance
+- Real-time suggestions via WebSocket streaming
+- Automated test generation
+- Documentation synthesis from code comments
+
+### 🔍 Advanced Code Analysis
+- Multi-language support (TypeScript, Python, Java)
+- Dependency visualization with interactive graphs
+- Architecture validation and recommendations
+
+### 🛠️ Developer Tooling
+- Boilerplate code generation
+- Jest test enhancement
+- Quality metrics dashboard
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 16+
+- VS Code 1.75+
+- SQLite3 (for logging)
+
+### Installation
+```bash
+npm install -g mafia-cli
+mafia init
+```
+
+### Usage
+```bash
+mafia analyze ./src
+mafia generate component --name=UserProfile
+```
 
 **Category:** Core Development Tools
 
@@ -55,7 +91,17 @@
 - **Technical Specifications:**
   - Interactive graph using D3.js with hover effects and Tailwind-styled nodes/edges.
 
-### 2. Code Modification & Enhancement
+## 📊 Technical Architecture
+
+```mermaid
+graph TD
+    A[MAFIA Core] --> B[AI Services]
+    A --> C[Analysis Engine]
+    A --> D[Testing Framework]
+    B --> E[Code Suggestions]
+    C --> F[Dependency Mapping]
+    D --> G[Coverage Visualization]
+```
 
 **Category:** Development Workflow
 
@@ -107,7 +153,19 @@
 - **Technical Specifications:**
   - Drag-and-drop interface with grid layout and real-time preview using Tailwind grid.
 
-### 3. Tool Integration
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [API Reference](docs/API.md) | Endpoint specifications |
+| [Developer Guide](docs/DEVELOPER.md) | Contribution guidelines |
+| [Changelog](CHANGELOG.md) | Version history |
+
+## 🤝 Contributing
+See our [Contribution Guidelines](CONTRIBUTING.md) for:
+- Code style requirements
+- Testing standards
+- Pull request process
 
 **Category:** Development Environment
 

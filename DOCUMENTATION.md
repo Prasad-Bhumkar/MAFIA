@@ -1,10 +1,20 @@
-Core Functionalities Decomposition
-1. AI Assistant Interface
-Feature Name: Autonomous Coding Assistant Interface
+# MAFIA Documentation (v1.1.2)
 
-Purpose & Benefits: Provides a centralized hub for users to interact with AI-driven coding suggestions, file operations, and system commands.
+![Version Badge](https://img.shields.io/badge/version-1.1.2-blue)
 
-User Interactions:
+## Core Features
+
+### 1. AI Assistant Interface
+**Feature Name**: Autonomous Coding Assistant Interface
+
+**Purpose & Benefits**: Provides a centralized hub for users to interact with AI-driven coding suggestions, file operations, and system commands. Now with GPT-4 Turbo model support (added in v1.1.0).
+
+**New in v1.1.2**:
+- Integrated documentation registry system (FILE_REGISTRY.md)
+- Modernized README structure with version badges
+- Automated documentation tracking
+
+**User Interactions**:
 
 Input box for natural language coding requests
 Task history panel showing previous interactions
@@ -18,12 +28,14 @@ Technical Specs:
 Webview HTML/CSS using Tailwind CDN
 React/Vue components for dynamic UI updates
 WebSocket for real-time AI response streaming
-2. Command Execution System
-Feature Name: Secure Command Execution
+### 2. Command Execution System
+**Feature Name**: Secure Command Execution
 
-Purpose & Benefits: Allows safe execution of CLI commands with user confirmation workflows.
+**Note**: All commands now use the `mafia` prefix instead of `indiCab` (changed in v1.1.0)
 
-User Interactions:
+**Purpose & Benefits**: Allows safe execution of CLI commands with user confirmation workflows.
+
+**User Interactions**:
 
 Button to trigger command execution
 Confirmation modal before critical operations
@@ -36,12 +48,17 @@ Technical Specs:
 Node.js child_process module for command execution
 Input sanitization to prevent injection attacks
 Progress indicators in the VS Code status bar
-3. AI Service Integration
-Feature Name: Multi-Model AI Backend
+### 3. AI Service Integration
+**Feature Name**: Multi-Model AI Backend
 
-Purpose & Benefits: Connects to multiple LLM providers for robust AI capabilities.
+**New Features**:
+- GPT-4 Turbo model support (v1.1.0)
+- 3x faster dependency visualizations (v1.1.0)
+- Expanded to 50+ code quality metrics (v1.1.0)
 
-User Interactions:
+**Purpose & Benefits**: Connects to multiple LLM providers for robust AI capabilities.
+
+**User Interactions**:
 
 Model selection dropdown (OpenAI/Anthropic/etc)
 API key configuration in settings
@@ -108,12 +125,17 @@ Technical Specs:
 Webview-based documentation viewer
 Search implementation using Fuse.js
 Keyboard event listeners
-7. Testing & Debugging
-Feature Name: Built-in Testing Framework
+### 7. Testing & Debugging
+**Feature Name**: Built-in Testing Framework
 
-Purpose & Benefits: Enables developers to validate extension functionality.
+**Planned for v1.2.0**:
+- Interactive dependency graph visualization
+- Real-time architecture validation overlay
+- Multi-model support (OpenAI, Anthropic, Local)
 
-User Interactions:
+**Purpose & Benefits**: Enables developers to validate extension functionality.
+
+**User Interactions**:
 
 Test runner UI with pass/fail indicators
 Debug console integration
@@ -447,3 +469,92 @@ All endpoints use JSON over WebSocket for real-time updates (e.g., command outpu
 SQLite3 tables are created via sqlite3 module in MAFIA/src/commands/db.js.
 CORS is irrelevant as all requests are internal to the extension's Node.js backend.
 API keys are stored encrypted in UserSettings table using VS Code's built-in encryption.
+
+## Design & Usability Guidelines
+
+### Frontend Implementation Plan
+- Use Tailwind CSS v3.4+ via CDN
+- Inter font from Google Fonts
+- Font Awesome v6 for icons
+- Modern VS Code theme colors
+
+### UI Components
+1. Webview Components:
+   - Sidebar: w-80 bg-gray-50 fixed h-screen with flex-col layout
+   - Input fields: w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500
+   - Cards: bg-white shadow-sm rounded-lg p-4 border border-gray-200
+   - Buttons: px-4 py-2 rounded-md font-medium transition-colors
+
+2. Visualization Components:
+   - D3.js for interactive graphs
+   - Tailwind-styled containers
+   - Responsive sizing
+
+### Key Improvements
+- Consistent spacing system (4px base)
+- Accessible color contrast
+- Responsive breakpoints
+- Smooth transitions/hover states
+- Unified typography
+
+## Database Schema
+
+```mermaid
+erDiagram
+    Commands ||--o{ Permissions : "requires"
+    Permissions }|..|{ Users : "granted to"
+    Settings ||--o{ UserSettings : "configures"
+    Commands {
+        int id
+        text command_text
+        text output
+        datetime timestamp
+    }
+    Permissions {
+        int id
+        text permission_type
+        bool is_granted
+        int user_id
+    }
+    UserSettings {
+        text key
+        text value
+        datetime updated_at
+    }
+```
+
+## Workflow Sequence
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant AIAssistantView as View
+    participant AIServiceV2 as AI Service
+    participant CommandExecutor as Command Exec
+    participant PermissionService as Perm Service
+    participant SettingsManager as Settings
+
+    User->>View: Enter query in input box
+    View->>AI Service: Request AI response (query, context)
+    AI Service->>OpenAI/Anthropic: Send API request with query
+    OpenAI/Anthropic-->>AI Service: Return response payload
+    AI Service-->>View: Processed AI suggestions
+    View-->>User: Display real-time suggestions
+```
+
+## Testing Framework Details
+
+### Unit Testing
+- Jest testing framework for all core modules
+- Mock services for API calls
+- Coverage reports with Istanbul
+
+### Integration Testing
+- End-to-end tests for UI components
+- WebSocket communication tests
+- Permission flow validation
+
+### Performance Testing
+- Benchmark tests for large codebases
+- Stress tests for AI service
+- Memory leak detection

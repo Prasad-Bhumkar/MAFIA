@@ -11,6 +11,34 @@ import { DocumentationGenerator } from './ai/DocumentationGenerator';
 import { DocumentationExporter } from './export/DocumentationExporter';
 import { BrowserCommands } from './commands/BrowserCommands';
 
+/**
+ * MAIN EXTENSION CLASS - REPLICATION NOTES:
+ * 
+ * 1. Core Responsibilities:
+ * - Initializes all services (AI, Visualization, Quality, etc.)
+ * - Registers all commands
+ * - Manages extension lifecycle
+ * - Handles workspace folder selection
+ * 
+ * 2. Key Patterns:
+ * - Singleton services (getInstance pattern)
+ * - Lazy initialization for heavy services
+ * - Centralized error handling
+ * - Webview-based visualization
+ * 
+ * 3. Implementation Requirements:
+ * - Must implement vscode.ExtensionContext integration
+ * - Requires proper command registration
+ * - Needs status bar item management
+ * - Should support multiple workspace folders
+ * 
+ * 4. Service Integration:
+ * - AI Service (AIServiceV2)
+ * - Project Scanner (EnhancedProjectScanner)
+ * - Visualization Components (ComponentVisualizer)
+ * - Quality Dashboard
+ * - Documentation Tools
+ */
 export class ExtensionMain {
     private visualizer: ComponentVisualizer;
     private qualityDashboard: QualityDashboard;

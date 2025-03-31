@@ -90,20 +90,51 @@ export class QualityDashboardController {
     private async refreshMetrics() {
         try {
             const dbService = await DatabaseService.getInstance();
-            // Refresh metrics logic here
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'updateMetrics',
-                    metrics: {
-                        testCoverage: 0.85,
-                        codeComplexity: 0.65,
-                        maintainability: 0.92,
-                        securityIssues: 2
-                    }
-                });
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders || !this.panel) return;
+
+            const rootPath = workspaceFolders[0].uri.fsPath;
+            const metrics = {
+                testCoverage: 0,
+                testPassRate: 0,
+                dependencies: 0,
+                securityIssues: 0,
+                lastUpdated: new Date().toISOString()
+            };
+
+            // Get coverage data
+            const coverage = await dbService.getCoverage(rootPath);
+            metrics.testCoverage = coverage.lineCoverage * 100; // Convert to percentage
+
+            // Get test results
+            const testResults = await dbService.getTestResults(rootPath);
+            if (testResults.length > 0) {
+                metrics.testPassRate = (testResults.filter(t => t.passed).length / testResults.length) * 100;
             }
+
+            // Get dependency count
+            const dependencies = await dbService.getDependencies(rootPath);
+            metrics.dependencies = dependencies.length;
+
+            // Post updated metrics to webview
+            this.panel.webview.postMessage({
+                command: 'updateMetrics',
+                metrics
+            });
+
+            // Log the refresh action
+            await dbService.logAction('dashboard_refresh', JSON.stringify({
+                coverage: metrics.testCoverage,
+                passRate: metrics.testPassRate
+            }));
         } catch (error) {
             Logger.error('Failed to refresh metrics', error);
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'error',
+                    message: 'Failed to load metrics: ' + error.message
+                });
+            }
         }
     }
 
