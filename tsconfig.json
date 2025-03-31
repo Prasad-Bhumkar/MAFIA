@@ -11,7 +11,8 @@
     "sourceMap": true,
     "jsx": "react",
     "lib": ["ES2020", "DOM"],
-    "types": ["jest", "node", "react", "react-dom"]
+    "types": ["node", "jest", "vscode"],
+    "moduleResolution": "node"
   },
   "include": ["src/**/*", "__tests__/**/*"],
   "exclude": ["node_modules"]

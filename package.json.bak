@@ -9,19 +9,13 @@
     "test": "jest",
     "test:monitoring": "jest src/utils/DatabaseMonitor.test.ts src/utils/Logger.test.ts",
     "test:database": "jest src/utils/DatabaseService.test.ts src/utils/DatabaseInitializer.test.ts",
-    "test:ci": "jest --coverage --runInBand --ci --reporters=default --reporters=jest-junit",
-    "lint": "eslint . --ext .ts,.tsx",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\""
+    "test:ci": "jest --coverage --runInBand --ci --reporters=default --reporters=jest-junit"
   },
   "dependencies": {
     "express": "^4.18.2",
     "fs-extra": "^11.1.1",
     "jest-junit": "^16.0.0",
-    "puppeteer": "^24.4.0",
-    "openai": "^4.90.0",
-    "marked": "^7.0.0",
-    "ws": "^8.13.0",
-    "react-syntax-highlighter": "^15.5.0"
+    "puppeteer": "^24.4.0"
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
@@ -30,19 +24,14 @@
     "@types/node": "^20.17.28",
     "@types/puppeteer": "^7.0.4",
     "@types/react": "^19.0.12",
-    "@types/react-dom": "^19.1.0",
+    "@types/react-dom": "^19.0.4",
     "@types/sqlite3": "^5.1.0",
     "@types/vscode": "^1.98.0",
-    "@types/ws": "^8.5.5",
-    "@types/marked": "^7.0.0",
     "autoprefixer": "^10.4.16",
     "dotenv": "^16.4.1",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
     "jest": "^29.7.0",
+    "openai": "^4.90.0",
     "postcss": "^8.4.35",
-    "prettier": "^3.2.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "sqlite": "^5.1.1",
@@ -83,41 +72,6 @@
         "command": "mafia.showAIAssistant",
         "title": "Show AI Assistant",
         "category": "MAFIA"
-      },
-      {
-        "command": "mafia.generateCode",
-        "title": "Generate Code",
-        "category": "MAFIA AI"
-      },
-      {
-        "command": "mafia.refactorCode",
-        "title": "Refactor Code",
-        "category": "MAFIA AI"
-      },
-      {
-        "command": "mafia.analyzeFile",
-        "title": "Analyze File",
-        "category": "MAFIA Analysis"
-      },
-      {
-        "command": "mafia.analyzeFolder",
-        "title": "Analyze Folder",
-        "category": "MAFIA Analysis"
-      },
-      {
-        "command": "mafia.showQualityDashboard",
-        "title": "Show Quality Dashboard",
-        "category": "MAFIA Quality"
-      },
-      {
-        "command": "mafia.runAutomation",
-        "title": "Run Browser Automation",
-        "category": "MAFIA Browser"
-      },
-      {
-        "command": "mafia.saveWorkflow",
-        "title": "Save Automation Workflow",
-        "category": "MAFIA Browser"
       }
     ],
     "views": {
@@ -125,14 +79,6 @@
         {
           "id": "mafiaAIAssistant",
           "name": "AI Assistant"
-        },
-        {
-          "id": "mafiaQualityDashboard",
-          "name": "Quality Dashboard"
-        },
-        {
-          "id": "mafiaBrowserPanel",
-          "name": "Browser Automation"
         }
       ]
     }

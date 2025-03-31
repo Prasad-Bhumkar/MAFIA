@@ -9,6 +9,7 @@ import { DependencyMapper } from './analysis/DependencyMapper';
 import { ArchitectureValidator } from './analysis/ArchitectureValidator';
 import { DocumentationGenerator } from './ai/DocumentationGenerator';
 import { DocumentationExporter } from './export/DocumentationExporter';
+import { BrowserCommands } from './commands/BrowserCommands';
 
 export class ExtensionMain {
     private visualizer: ComponentVisualizer;
@@ -30,6 +31,8 @@ export class ExtensionMain {
         this.registerCommands();
         this.setupStatusBar();
         this.registerAIComponents();
+        // Initialize browser commands
+        BrowserCommands.getInstance(context);
     }
 
     private registerCommands() {
