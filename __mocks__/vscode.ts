@@ -14,6 +14,40 @@ const vscode = {
         getConfiguration: jest.fn().mockReturnValue({
             get: jest.fn(),
             update: jest.fn()
+        }),
+        fs: {
+            writeFile: jest.fn().mockImplementation(() => Promise.resolve()),
+            readFile: jest.fn().mockImplementation((uri: unknown) => {
+                const path = typeof uri === 'object' && uri !== null && 'fsPath' in uri 
+                    ? (uri as { fsPath: string }).fsPath
+                    : '';
+                if (path.includes('browser_logs.json')) {
+                    return Promise.resolve(Buffer.from('[]'));
+                }
+                const error = new Error('File not found');
+                (error as any).code = 'ENOENT';
+                return Promise.reject(error);
+            }),
+            createDirectory: jest.fn().mockImplementation(() => Promise.resolve()),
+        },
+        workspaceFolders: [{
+            uri: {
+                fsPath: '/project/sandbox/user-workspace/MAFIA'
+            }
+        }]
+    },
+    Uri: {
+        file: jest.fn().mockImplementation(path => ({ fsPath: path })),
+        joinPath: jest.fn().mockImplementation((...args: unknown[]) => {
+            const [base, ...paths] = args;
+            return {
+                fsPath: [
+                    typeof base === 'object' && base !== null && 'fsPath' in base 
+                        ? (base as { fsPath: string }).fsPath 
+                        : String(base),
+                    ...paths.map(String)
+                ].join('/')
+            };
         })
     },
     ExtensionContext: jest.fn(),
