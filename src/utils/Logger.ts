@@ -1,8 +1,7 @@
-import { EnvironmentConfig } from './EnvironmentConfig';
 import { DatabaseService } from './DatabaseService';
 
 export class Logger {
-    private static logLevel = EnvironmentConfig.get('LOG_LEVEL') || 'info';
+    private static logLevel = process.env.LOG_LEVEL || 'info';
 
     public static debug(message: string, context?: any) {
         if (this.shouldLog('debug')) {
@@ -41,10 +40,13 @@ export class Logger {
     private static async logToDatabase(level: string, message: string, context: any = {}) {
         try {
             const dbService = await DatabaseService.getInstance();
-            await dbService.logError(
-                `Logger.${level}`,
-                new Error(message),
-                JSON.stringify(context)
+            await dbService.logAction(
+                `LOG_${level.toUpperCase()}`,
+                JSON.stringify({
+                    message,
+                    error: message,
+                    context
+                })
             );
         } catch (error) {
             console.error('Failed to log to database', error);

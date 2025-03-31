@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
 import { AIServiceV2 } from './AIServiceV2';
-import { ErrorHandler } from '../utils/ErrorHandler';
+import ErrorHandler from '../utils/ErrorHandler';
 import { AgentPanel } from '../views/AgentPanel';
+import { CommandExecutor } from './CommandExecutor';
+import { Logger } from '../utils/Logger';
+import { BrowserService } from './BrowserService';
 
 export interface AgentOperation {
     id: string;
@@ -52,16 +55,67 @@ export class AgentOrchestrator {
     }
 
     private async parseTaskToOperations(task: string): Promise<AgentOperation[]> {
-        // TODO: Implement AI-powered task parsing
-        return [{
-            id: this.generateId(),
-            type: 'command',
-            action: 'execute',
-            parameters: { command: 'echo "Hello World"' },
-            status: 'queued',
-            description: task,
-            createdAt: new Date()
-        }];
+        try {
+            const aiService = AIServiceV2.getInstance(this.context);
+            const generatedCode = await aiService.generateCode(
+                `Convert this task to operations: ${task}`,
+                'typescript'
+            );
+
+            // Parse the generated code into operations
+            const operations: AgentOperation[] = [];
+            
+            // Simple parsing logic - in a real implementation this would be more robust
+            if (generatedCode.includes('file')) {
+                operations.push({
+                    id: this.generateId(),
+                    type: 'file',
+                    action: 'edit',
+                    parameters: { path: 'path/to/file', content: '// Generated content' },
+                    status: 'queued',
+                    description: `File operation for: ${task}`,
+                    createdAt: new Date()
+                });
+            }
+
+            if (generatedCode.includes('browser')) {
+                operations.push({
+                    id: this.generateId(),
+                    type: 'browser',
+                    action: 'navigate',
+                    parameters: { url: 'https://example.com' },
+                    status: 'queued',
+                    description: `Browser operation for: ${task}`,
+                    createdAt: new Date()
+                });
+            }
+
+            if (operations.length === 0) {
+                // Default fallback to command operation
+                operations.push({
+                    id: this.generateId(),
+                    type: 'command',
+                    action: 'execute',
+                    parameters: { command: `echo "Processing: ${task}"` },
+                    status: 'queued',
+                    description: task,
+                    createdAt: new Date()
+                });
+            }
+
+            return operations;
+        } catch (error) {
+            ErrorHandler.handle(error, 'Failed to parse task');
+            return [{
+                id: this.generateId(),
+                type: 'command',
+                action: 'execute',
+                parameters: { command: `echo "Fallback for: ${task}"` },
+                status: 'queued',
+                description: task,
+                createdAt: new Date()
+            }];
+        }
     }
 
     private enqueueOperations(operations: AgentOperation[]) {
@@ -122,15 +176,66 @@ export class AgentOrchestrator {
 
     // Operation type handlers
     private async handleFileOperation(op: AgentOperation): Promise<void> {
-        // TODO: Implement file operations
+        try {
+            const { path, content } = op.parameters;
+            if (!path || !content) {
+                throw new Error('Missing required file operation parameters');
+            }
+
+            // Get the full file system path
+            const fullPath = vscode.Uri.file(
+                path.startsWith('/') ? path : `${this.context.extensionPath}/${path}`
+            );
+
+            // Write the file content
+            await vscode.workspace.fs.writeFile(
+                fullPath,
+                Buffer.from(content)
+            );
+
+            Logger.info(`File operation completed: ${op.description}`);
+        } catch (error) {
+            Logger.error(`File operation failed: ${op.description}`, error);
+            throw error;
+        }
     }
 
     private async handleBrowserOperation(op: AgentOperation): Promise<void> {
-        // TODO: Implement browser automation
+        try {
+            const browserService = BrowserService.getInstance(this.context);
+            await browserService.launchBrowser();
+
+            switch(op.action) {
+                case 'navigate':
+                    await browserService.navigate(op.parameters.url);
+                    break;
+                case 'click':
+                    await browserService.executeScript(
+                        `document.querySelector('${op.parameters.selector}').click()`
+                    );
+                    break;
+                case 'type':
+                    await browserService.executeScript(
+                        `document.querySelector('${op.parameters.selector}').value = '${op.parameters.text}'`
+                    );
+                    break;
+                case 'screenshot':
+                    await browserService.captureScreenshot();
+                    break;
+                default:
+                    throw new Error(`Unsupported browser action: ${op.action}`);
+            }
+
+            Logger.info(`Browser operation completed: ${op.description}`);
+        } catch (error) {
+            Logger.error(`Browser operation failed: ${op.description}`, error);
+            throw error;
+        }
     }
 
     private async handleCommandOperation(op: AgentOperation): Promise<void> {
-        // TODO: Implement command execution
+        const commandExecutor = CommandExecutor.getInstance(this.context);
+        await commandExecutor.execute(op);
     }
 
     private generateId(): string {

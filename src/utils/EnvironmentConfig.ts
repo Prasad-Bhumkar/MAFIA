@@ -1,27 +1,25 @@
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+import * as vscode from 'vscode';
 
-export class EnvironmentConfig {
-    private static initialized = false;
-
-    public static initialize() {
-        if (this.initialized) return;
-
-        const envPath = path.join(__dirname, '../../.env');
-        dotenv.config({ path: envPath });
-        this.initialized = true;
-    }
-
+export class Configuration {
     public static get(key: string): string | undefined {
-        if (!this.initialized) this.initialize();
-        return process.env[key];
+        const config = vscode.workspace.getConfiguration('mafia');
+        return config.get<string>(key);
     }
 
-    public static getRequired(key: string): string {
-        const value = this.get(key);
-        if (!value) {
-            throw new Error(`Missing required environment variable: ${key}`);
-        }
-        return value;
+    public static set(key: string, value: string): Thenable<void> {
+        const config = vscode.workspace.getConfiguration('mafia');
+        return config.update(key, value, vscode.ConfigurationTarget.Global);
+    }
+
+    public static getModelConfig(): { 
+        openaiKey: string | undefined,
+        anthropicKey: string | undefined,
+        localEnabled: boolean 
+    } {
+        return {
+            openaiKey: this.get('OPENAI_API_KEY'),
+            anthropicKey: this.get('ANTHROPIC_API_KEY'),
+            localEnabled: this.get('LOCAL_AI_ENABLED') === 'true'
+        };
     }
 }

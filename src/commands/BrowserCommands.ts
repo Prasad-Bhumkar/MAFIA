@@ -3,6 +3,32 @@ import { BrowserService } from '../ai/BrowserService';
 import { BrowserPanel } from '../views/BrowserPanel';
 import { ErrorHandler } from '../utils/ErrorHandler';
 
+/**
+ * BROWSER COMMANDS - REPLICATION GUIDE:
+ * 
+ * 1. Core Functionality:
+ * - Browser launch/close management
+ * - URL navigation
+ * - Browser panel display
+ * - Error handling for browser operations
+ * 
+ * 2. Implementation Requirements:
+ * - Puppeteer integration
+ * - Proper browser instance management
+ * - User input handling for URLs
+ * - Webview panel integration
+ * 
+ * 3. Key Patterns:
+ * - Singleton command handler
+ * - Centralized error handling
+ * - Async/await for browser operations
+ * - Clean resource disposal
+ * 
+ * 4. Integration Points:
+ * - BrowserService (core browser operations)
+ * - BrowserPanel (webview interface)
+ * - ErrorHandler (error management)
+ */
 export class BrowserCommands {
     private static instance: BrowserCommands;
     private browserService: BrowserService;

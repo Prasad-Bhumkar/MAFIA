@@ -7,6 +7,15 @@ interface AIRequestLog {
     language: string;
     context: string;
     timestamp: Date;
+    model?: string;
+}
+
+interface LocalGenerationLog {
+    prompt: string;
+    language: string;
+    context: string;
+    timestamp: Date;
+    generatedCode: string;
 }
 
 interface TestResult {
@@ -153,6 +162,20 @@ export class DatabaseService {
             );
         } catch (error) {
             Logger.error('Failed to log AI request', error);
+            throw error;
+        }
+    }
+
+    public async logLocalGeneration(log: LocalGenerationLog): Promise<void> {
+        if (!this.db) throw new Error('Database not initialized');
+        try {
+            await this.db.run(
+                `INSERT INTO logs (action_type, details) 
+                 VALUES (?, ?)`,
+                ['LOCAL_GENERATION', JSON.stringify(log)]
+            );
+        } catch (error) {
+            Logger.error('Failed to log local generation', error);
             throw error;
         }
     }
