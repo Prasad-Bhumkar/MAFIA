@@ -1,12 +1,29 @@
-import { open } from 'sqlite';
-import sqlite3 from 'sqlite3';
-import { DatabaseInitializer } from './DatabaseInitializer';
-import { DatabaseErrorHandler } from './DatabaseErrorHandler';
-import * as path from 'path';
+import * as sqlite3 from 'sqlite3';
+import { open, Database } from 'sqlite';
+import { Logger } from './Logger';
+
+interface AIRequestLog {
+    prompt: string;
+    language: string;
+    context: string;
+    timestamp: Date;
+}
+
+interface TestResult {
+    testName: string;
+    passed: boolean;
+    errorMessage?: string;
+}
+
+interface Dependency {
+    sourceFile: string;
+    dependentFile: string;
+    dependencyType: string;
+}
 
 export class DatabaseService {
     private static instance: DatabaseService;
-    private db: any;
+    private db: Database<sqlite3.Database, sqlite3.Statement> | null = null;
 
     private constructor() {}
 
@@ -18,152 +35,135 @@ export class DatabaseService {
         return DatabaseService.instance;
     }
 
-    private async initialize() {
+    private async initialize(): Promise<void> {
         try {
-            this.db = await DatabaseInitializer.initialize();
-        } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Database Service Initialization');
-            throw error;
-        }
-    }
+            this.db = await open({
+                filename: './mafia.db',
+                driver: sqlite3.Database
+            });
 
-    // Error Logging
-    public async logError(context: string, error: Error, additionalData: string = ''): Promise<void> {
-        try {
-            await this.db.run(
-                'INSERT INTO ErrorLogs (context, error_message, stack_trace, additional_data, timestamp) VALUES (?, ?, ?, ?, ?)',
-                [context, error.message, error.stack, additionalData, new Date().toISOString()]
-            );
-        } catch (dbError) {
-            await DatabaseErrorHandler.handle(dbError, 'Error Logging');
-        }
-    }
-
-    // User Settings
-    public async getUserSettings(userId: string): Promise<any> {
-        try {
-            return await this.db.get(
-                'SELECT * FROM UserSettings WHERE user_id = ?',
-                [userId]
-            );
-        } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Get User Settings');
-            throw error;
-        }
-    }
-
-    public async updateUserSettings(userId: string, settings: any): Promise<void> {
-        try {
-            const existing = await this.getUserSettings(userId);
-            if (existing) {
-                await this.db.run(
-                    `UPDATE UserSettings 
-                    SET api_key = ?, theme_preference = ?, enable_analytics = ?
-                    WHERE user_id = ?`,
-                    [settings.apiKey, settings.themePreference, settings.enableAnalytics, userId]
+            await this.db.exec(`
+                CREATE TABLE IF NOT EXISTS logs (
+                    id INTEGER PRIMARY KEY,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    action_type TEXT NOT NULL,
+                    details TEXT
                 );
-            } else {
-                await this.db.run(
-                    `INSERT INTO UserSettings 
-                    (user_id, api_key, theme_preference, enable_analytics)
-                    VALUES (?, ?, ?, ?)`,
-                    [userId, settings.apiKey, settings.themePreference, settings.enableAnalytics]
+                
+                CREATE TABLE IF NOT EXISTS dependencies (
+                    id INTEGER PRIMARY KEY,
+                    source_file TEXT NOT NULL,
+                    dependent_file TEXT NOT NULL,
+                    dependency_type TEXT CHECK(dependency_type IN ('IMPORT', 'INCLUDE'))
                 );
-            }
+                
+                CREATE TABLE IF NOT EXISTS coverage (
+                    id INTEGER PRIMARY KEY,
+                    file_path TEXT NOT NULL,
+                    line_coverage REAL,
+                    branch_coverage REAL,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS test_results (
+                    id INTEGER PRIMARY KEY,
+                    test_name TEXT NOT NULL,
+                    passed BOOLEAN,
+                    error_message TEXT,
+                    coverage_id INTEGER,
+                    FOREIGN KEY (coverage_id) REFERENCES coverage(id)
+                );
+            `);
         } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Update User Settings');
+            Logger.error('Failed to initialize database', error);
             throw error;
         }
     }
 
-    // Dependency Management
-    public async updateDependency(
-        packageName: string,
-        version: string,
-        projectPath: string,
-        status: string = 'unknown'
-    ): Promise<void> {
+    public async logAction(action: string, details: string): Promise<void> {
+        if (!this.db) throw new Error('Database not initialized');
         try {
             await this.db.run(
-                `INSERT OR REPLACE INTO Dependencies 
-                (package_name, version, vulnerability_status, project_path)
-                VALUES (?, ?, ?, ?)`,
-                [packageName, version, status, projectPath]
+                'INSERT INTO logs (action_type, details) VALUES (?, ?)',
+                [action, details]
             );
         } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Update Dependency');
+            Logger.error('Failed to log action', error);
             throw error;
         }
     }
 
-    public async getDependencies(projectPath: string): Promise<any[]> {
+    public async getCoverage(filePath: string): Promise<{ lineCoverage: number, branchCoverage: number }> {
+        if (!this.db) throw new Error('Database not initialized');
         try {
-            return await this.db.all(
-                'SELECT * FROM Dependencies WHERE project_path = ?',
-                [projectPath]
+            const result = await this.db.get<{line_coverage: number, branch_coverage: number}>(
+                'SELECT line_coverage, branch_coverage FROM coverage WHERE file_path = ? ORDER BY timestamp DESC LIMIT 1',
+                [filePath]
             );
+            return {
+                lineCoverage: result?.line_coverage || 0,
+                branchCoverage: result?.branch_coverage || 0
+            };
         } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Get Dependencies');
+            Logger.error('Failed to get coverage', error);
             throw error;
         }
     }
 
-    // Test Case Management
-    public async saveTestCase(
-        testName: string,
-        testCode: string,
-        projectPath: string
-    ): Promise<void> {
+    public async getTestResults(filePath: string): Promise<TestResult[]> {
+        if (!this.db) throw new Error('Database not initialized');
+        try {
+            const results = await this.db.all<TestResult[]>(
+                `SELECT t.test_name as testName, t.passed, t.error_message as errorMessage 
+                 FROM test_results t
+                 JOIN coverage c ON t.coverage_id = c.id
+                 WHERE c.file_path = ?`,
+                [filePath]
+            );
+            return results || [];
+        } catch (error) {
+            Logger.error('Failed to get test results', error);
+            throw error;
+        }
+    }
+
+    public async getDependencies(filePath: string): Promise<Dependency[]> {
+        if (!this.db) throw new Error('Database not initialized');
+        try {
+            const results = await this.db.all<Dependency[]>(
+                `SELECT source_file as sourceFile, dependent_file as dependentFile, dependency_type as dependencyType
+                 FROM dependencies
+                 WHERE source_file = ? OR dependent_file = ?`,
+                [filePath, filePath]
+            );
+            return results || [];
+        } catch (error) {
+            Logger.error('Failed to get dependencies', error);
+            throw error;
+        }
+    }
+
+    public async logRequest(request: AIRequestLog): Promise<void> {
+        if (!this.db) throw new Error('Database not initialized');
         try {
             await this.db.run(
-                `INSERT OR REPLACE INTO TestCases 
-                (test_name, test_code, project_path)
-                VALUES (?, ?, ?)`,
-                [testName, testCode, projectPath]
+                `INSERT INTO logs (action_type, details) 
+                 VALUES (?, ?)`,
+                ['AI_REQUEST', JSON.stringify(request)]
             );
         } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Save Test Case');
+            Logger.error('Failed to log AI request', error);
             throw error;
         }
     }
 
-    public async getTestCases(projectPath: string): Promise<any[]> {
-        try {
-            return await this.db.all(
-                'SELECT * FROM TestCases WHERE project_path = ?',
-                [projectPath]
-            );
-        } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Get Test Cases');
-            throw error;
-        }
-    }
-
-    public async updateTestResult(
-        testName: string,
-        projectPath: string,
-        status: string,
-        executionTime?: number
-    ): Promise<void> {
-        try {
-            await this.db.run(
-                `UPDATE TestCases 
-                SET status = ?, last_run = CURRENT_TIMESTAMP, execution_time = ?
-                WHERE test_name = ? AND project_path = ?`,
-                [status, executionTime, testName, projectPath]
-            );
-        } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Update Test Result');
-            throw error;
-        }
-    }
-
-    // Utility Methods
     public async close(): Promise<void> {
         try {
-            await this.db.close();
+            if (this.db) {
+                await this.db.close();
+            }
         } catch (error) {
-            await DatabaseErrorHandler.handle(error, 'Database Close');
+            Logger.error('Failed to close database', error);
             throw error;
         }
     }

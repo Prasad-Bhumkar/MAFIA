@@ -24,6 +24,23 @@ export class AIServiceV2 {
 
     private constructor(private context: vscode.ExtensionContext) {}
 
+    private toCamelCase(str: string): string {
+        return str
+            .replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, (match, index) => {
+                if (+match === 0) return '';
+                return index === 0 ? match.toLowerCase() : match.toUpperCase();
+            })
+            .replace(/[^\w]/gi, '');
+    }
+
+    private toSnakeCase(str: string): string {
+        return str
+            .replace(/[^\w\s]/gi, '')
+            .split(' ')
+            .join('_')
+            .toLowerCase();
+    }
+
     public static getInstance(context: vscode.ExtensionContext): AIServiceV2 {
         if (!AIServiceV2.instance) {
             AIServiceV2.instance = new AIServiceV2(context);
@@ -55,8 +72,48 @@ export class AIServiceV2 {
             Logger.info(`Generating ${language} code`, { prompt });
             const dbService = await DatabaseService.getInstance();
             
-            // Implementation for code generation
-            return `// Generated ${language} code\n// ${prompt}\nfunction example() {\n  return "Hello World";\n}`;
+            // Get context from active editor
+            const editor = vscode.window.activeTextEditor;
+            const context = editor ? 
+                `File: ${editor.document.fileName}\n` +
+                `Language: ${editor.document.languageId}\n` +
+                `Selected Text: ${editor.document.getText(editor.selection)}` 
+                : 'No active editor context';
+            
+            // Store request in database
+            await dbService.logRequest({
+                prompt,
+                language,
+                context,
+                timestamp: new Date()
+            });
+
+            // Generate more sophisticated code based on language
+            let code = '';
+            switch(language) {
+                case 'typescript':
+                    code = `// ${prompt}\n` +
+                           `export function ${this.toCamelCase(prompt)}() {\n` +
+                           `  // Implementation\n` +
+                           `  return {\n` +
+                           `    success: true\n` +
+                           `  };\n` +
+                           `}`;
+                    break;
+                case 'python':
+                    code = `# ${prompt}\n` +
+                           `def ${this.toSnakeCase(prompt)}():\n` +
+                           `    """Implementation"""\n` +
+                           `    return {"success": True}`;
+                    break;
+                default:
+                    code = `// ${prompt}\n` +
+                           `function ${this.toCamelCase(prompt)}() {\n` +
+                           `  return { success: true };\n` +
+                           `}`;
+            }
+
+            return code;
         } catch (error) {
             Logger.error('Code Generation Error', error);
             throw error;

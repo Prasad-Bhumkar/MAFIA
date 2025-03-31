@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
-import puppeteer from 'puppeteer';
+import * as puppeteer from 'puppeteer';
 import { Logger } from '../utils/Logger';
 import { DatabaseService } from '../utils/DatabaseService';
 
-interface BrowserSession {
+export interface BrowserSession {
     id: string;
     url: string;
     timestamp: number;
     screenshot?: string;
+    title?: string;
+    status?: number;
 }
 
 export class BrowserService {
@@ -48,35 +50,40 @@ export class BrowserService {
         }
     }
 
-    public async navigate(url: string): Promise<void> {
+    public async navigate(url: string): Promise<BrowserSession> {
+        if (!this.browser) {
+            await this.launch();
+        }
+
+        this.activePage = await this.browser!.newPage();
+        const response = await this.activePage.goto(url, { 
+            waitUntil: 'networkidle2',
+            timeout: 60000 
+        });
+
+        // Create session object
+        const session: BrowserSession = {
+            id: Date.now().toString(),
+            url,
+            timestamp: Date.now(),
+            title: await this.activePage.title(),
+            status: response?.status()
+        };
+        this.sessions.push(session);
+
         try {
-            if (!this.browser) {
-                await this.launch();
-            }
-
-            this.activePage = await this.browser!.newPage();
-            await this.activePage.goto(url, { 
-                waitUntil: 'networkidle2',
-                timeout: 60000 
-            });
-
-            // Log the navigation
-            const session: BrowserSession = {
-                id: Date.now().toString(),
-                url,
-                timestamp: Date.now()
-            };
-            this.sessions.push(session);
-
             // Save to database
             const dbService = await DatabaseService.getInstance();
-            await dbService.logBrowserSession(session);
-
-            Logger.info(`Navigated to ${url}`);
+            await dbService.query(
+                'INSERT INTO browser_sessions (id, data) VALUES (?, ?)',
+                [session.id, JSON.stringify(session)]
+            );
         } catch (error) {
-            Logger.error(`Failed to navigate to ${url}`, error);
-            throw error;
+            Logger.error('Failed to save browser session', error);
         }
+
+        Logger.info(`Navigated to ${url}`);
+        return session;
     }
 
     public async captureScreenshot(): Promise<string> {
